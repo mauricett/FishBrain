@@ -1,7 +1,7 @@
 # FishBrain
 
 <div align="center">
-    <img src="img/logo_512x512.png" alt="Logo" width="256" height="256">
+    <img src="img/logo.png" alt="Logo" width="256" height="256">
 </div>
 
 &nbsp;
