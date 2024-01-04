@@ -8,7 +8,7 @@
 &nbsp;
 
 <div align="center">
-FishBrain is a chess engine which evaluates positions with a neural network trained on StockFish evaluations.
+FishBrain is a chess engine which uses a neural network trained on Stockfish evaluations.
 </div>
 
 &nbsp;
