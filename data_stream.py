@@ -91,3 +91,9 @@ int.from_bytes(data[next_frame_pos : next_frame_pos + 4], byteorder='little')
 # care, some frames have checksums, while others don't
 zstd.get_frame_parameters(data[12:]).has_checksum == True
 zstd.get_frame_parameters(data[next_frame_pos:]).has_checksum == False
+
+#%%
+int.from_bytes(data[next_frame_pos + 12: next_frame_pos + 16], byteorder='little')
+int('0xFD2FB528', 16) # general
+int('0x184D2A50', 16) # skippable
+zstd.get_frame_parameters(data[next_frame_pos + 12:]).has_checksum
