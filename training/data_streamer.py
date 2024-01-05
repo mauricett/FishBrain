@@ -7,7 +7,13 @@ import io
 
 #%%
 class DataStreamer:
-    def __init__(self, url=None):
+    def __init__(self):
+        pass
 
+    def collect_blocks(self):
+        pass
+
+    def download_frame(self):
+        pass
 
 data_streamer = DataStreamer('')
