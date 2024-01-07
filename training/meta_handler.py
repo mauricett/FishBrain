@@ -13,7 +13,7 @@ class Handler:
 
     def create_default(self):
         default = dict()
-        default['url'] = "https://database.lichess.org/standard/lichess_db_standard_rated_2023-11.pgn.zst"
+        default['url'] = "https://database.lichess.org/standard/lichess_db_standard_rated_2013-01.pgn.zst"
         default['current_pos'] = "0"
         default['filesize'] = "30047560534"
 

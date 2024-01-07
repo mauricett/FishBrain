@@ -1,4 +1,5 @@
 #%%
+import os
 import requests
 import chess
 import chess.pgn
@@ -9,8 +10,8 @@ import training.meta_handler as meta
 
 class DataStreamer:
     """
-    This class streams data from Lichess to avoid having to
-    download entire files. Lichess compresses files with zstandard,
+    This class streams data from Lichess to avoid having to download
+    entire files at once. Lichess compresses files with zstandard,
     which allows partial decompression. We use this to stream
     and process data on-the-fly.
 
@@ -18,24 +19,17 @@ class DataStreamer:
     by writing to /training/metadata.json. This way we can pause and
     resume training.
     """
-    def __init__(self):
+    def __init__(self, filepath):
         # zstd frames begin with one of the following two magic numbers.
         self.FRAME_MAGIC_NUMBER = int('0xFD2FB528', 16)
         self.SKIPPABLE_MAGIC_NUMBER = int('0x184D2A50', 16)
-        
-        self.meta_handler = meta.Handler()
-        self.metadata = self.meta_handler.load()
-        self.url = self.metadata['url']
-        self.current_pos = self.metadata['current_pos']
+        self.file = open(filepath, 'rb')
+        self.filepath = filepath
  
     def get_n_bytes(self, start_byte: str, n_range: int) -> bytes:
         start_byte = int(start_byte)
-        # Range in requests.get() is inclusive, we need to subtract 1.
-        end_byte = start_byte + n_range-1
-        request_head = {"Range" : "bytes=%s-%s" % (start_byte, end_byte)}
-        response = requests.get(self.url, headers=request_head)
-        content = response.content
-        return content
+        self.file.seek(start_byte)
+        return self.file.read(n_range)
     
     def find_data_frame(self, byte_pos: str) -> str:
         # zstd differentiates between "skippable" and "general" frames.
@@ -81,30 +75,86 @@ class DataStreamer:
         # Traverse all blocks till we find last one
         is_last_block = 0
         while not is_last_block:
-            last_pos = block_pos
             is_last_block, block_pos = self.check_block_header(block_pos)
         # Frame size is the last position minus the initial position
         # +4 bytes for checksum after the last block
-        frame_size = int(last_pos) - int(byte_pos) + 4
-        return frame_size
+        frame_size = int(block_pos) - int(byte_pos) + 4
+        return str(int(block_pos)+4), frame_size
 
 
-    def download_frame(self, byte_pos: str) -> bytes:
+    def download_frame(self, byte_pos: str) -> list:
         # Headers of data frames are variable size, but seem to always
         # be 6 bytes in the Lichess data. I'm hardcoding this value
         # for now and assume that every data frame ends with a 4 byte
         # checksum. No further info is needed from header with these
         # assumptions. All important info is in the "block headers".
-        byte_pos = self.find_data_frame(byte_pos)
-        frame_size = self.get_frame_size(byte_pos)
-        print("frame_size: ", frame_size)
-        return None
+        frame_list = []
+        file_size = os.stat(self.filepath).st_size
+        byte_pos = '0'
+        while int(byte_pos) < file_size:
+            byte_pos = self.find_data_frame(byte_pos)
+            frame_start = int(byte_pos)
+            byte_pos, frame_size = self.get_frame_size(byte_pos)
+            frame_list.append((frame_start, frame_size))
+        return frame_list
 
-data_streamer = DataStreamer()
+#data_streamer = DataStreamer('data/lichess_db_standard_rated_2013-01.pgn.zst')
+data_streamer = DataStreamer('data/lichess_db_standard_rated_2017-01.pgn.zst')
+frame_list = data_streamer.download_frame('0')
 
 #%%
-#url = "https://database.lichess.org/standard/lichess_db_standard_rated_2023-11.pgn.zst"
-#response = requests.head(url)
-#response.headers['Content-Length']
-data_streamer.download_frame('0')
-#data_streamer.check_block_header('6404046')
+dctx = zstd.ZstdDecompressor()
+start, size = frame_list[0]
+data_streamer.file.seek(start)
+x = data_streamer.file.read(size)
+y = dctx.stream_reader(x)
+z = y.read()
+
+#%%
+pgn = z.decode('utf-8')
+pgn = io.StringIO(pgn)
+
+#%%
+pgn.tell()
+pgn.seek(0)
+len(z)
+
+g1 = chess.pgn.read_game(pgn)
+pgn.getvalue()[pgn.tell():pgn.tell()+600]
+
+#%%
+if g1.next().eval():
+    print("hey")
+
+#%%
+n=0
+while n < 256:
+    g1 = chess.pgn.read_game(pgn)
+    try:
+        score = g1.next().eval()
+        if score:
+            n += 1
+    except:
+        continue
+print(n)
+#g1.next().board()
+
+#%%
+g1.headers
+
+#%%
+pgn = z.decode('utf-8')[0+pgn.tell():200000+pgn.tell()]
+pgn = io.StringIO(pgn)
+
+#%%
+g1 = chess.pgn.read_game(pgn)
+g1.next().eval()
+g1.next().board()
+
+
+#%%
+bla = 1
+n=0
+while bla:
+    bla = chess.pgn.read_game(pgn)
+    n+=1
