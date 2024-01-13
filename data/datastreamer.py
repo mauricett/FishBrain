@@ -4,11 +4,15 @@ import chess.pgn
 from data.helper import save_metadata, load_metadata, update_metadata
 from data.helper import download, decompress
 
+"""
+todo:
+- add back logic to resume/new stream.
+- set self.start_byte after resume
+- add clean logic for game filter
+"""
 
 class DataStreamer:
-    def __init__(self, resume:      bool = False, 
-                       buffer_size: int  = 16 * 10**6):
-
+    def __init__(self, resume: bool = False, buffer_size: int  = 16 * 10**6):
         self.buffer_size = buffer_size
 
         self.metadata:   dict
@@ -19,11 +23,6 @@ class DataStreamer:
 
     def init_stream(self):
         self.metadata = load_metadata(self)
-        """
-        todo:
-        handle logic for resume/new stream.
-        set self.start_byte after resume
-        """
 
     def start_stream(self, start_byte='0'):
         response = download(self, start_byte, stream=True)
@@ -31,23 +30,24 @@ class DataStreamer:
         return response, pgn
 
     def resume_stream(self):
-        # Starts a stream at the nearest zstd frame after 'last_byte'.
+        # Starts stream at nearest zstd frame after 'consumed_bytes'.
         print("Resuming stream. Finding entry point for decompression.")
-        start_byte = self.metadata['last_byte']
+        start_byte = self.metadata['consumed_bytes']
+        # Frames are ~5 MB large. We download and search the next 10 MB.
         end_byte = start_byte + 10 * 10**6
         response = download(self, start_byte, end_byte)
         content = response.content
         response.close()
-        frame_start = self.find_frame_start(content)
-        frame_start_byte = last_byte + frame_start
-        response, pgn = self.start_stream(start_byte=frame_start_byte)
-        # Discard first game, because the decompressable chunks do not
-        # cleanly divide the pgns into legal game data.
+        # find_frame_start() returns byte position within the 10 MB file.
+        # Add start_byte to get the absolute byte position to resume stream.
+        frame_start = start_byte + self.find_frame_start(content)
+        response, pgn = self.start_stream(start_byte=frame_start)
+        # Discard first game, because frames do not cleanly divide pgns.
         try:
             print("If you receive an error message from python-chess, "
                   "this is harmless. Ignore.")
             print("...")
-            _ = chess.pgn.read_game(pgn)
+            discard = chess.pgn.read_game(pgn)
             print("...")
         finally:
             return response, pgn, start_byte

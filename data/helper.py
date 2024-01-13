@@ -15,9 +15,9 @@ def load_metadata(streamer):
 
 def update_metadata(streamer):
     # Keep track of the absolute byte position to support resume.
-    last_byte = streamer.tell()
-    if last_byte > streamer.metadata['last_byte']:
-        streamer.metadata['last_byte'] = last_byte
+    consumed_bytes = streamer.tell()
+    if last_byte > streamer.metadata['consumed_bytes']:
+        streamer.metadata['consumed_bytes'] = consumed_bytes
         save_metadata(streamer, streamer.worker_id)
 
 def download(streamer, start_byte: str, end_byte: str, stream: bool):
