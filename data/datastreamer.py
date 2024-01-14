@@ -35,7 +35,6 @@ class DataStreamer:
 
     def resume_stream(self):
         # Starts stream at nearest zstd frame after 'consumed_bytes'.
-        print("Resuming stream. Finding entry point for decompression.")
         start_byte = self.metadata['consumed_bytes']
         # Frames are ~5 MB large. We download and search the next 10 MB.
         end_byte = start_byte + 10 * 10**6
@@ -50,7 +49,6 @@ class DataStreamer:
         try:
             discard = chess.pgn.read_game(self.pgn)
         finally:
-            print("test. appears multiple times? :thonk:")
             pass
 
     def find_frame_start(self, content):
