@@ -1,33 +1,24 @@
 #%%
 import chess.pgn
 
-from data.helper import save_metadata, load_metadata, update_metadata
+import data.filters as filters
 from data.helper import download, decompress
 
-"""
-todo:
-- add back logic to resume/new stream.
-- set self.start_byte after resume
-- add clean logic for game filter
-"""
 
 class DataStreamer:
     def __init__(self, resume: bool = False, buffer_size: int  = 16 * 10**6):
         self.buffer_size = buffer_size
-
+        # metadata and worker_id are handled by DataLoader
         self.metadata:   dict
+        self.worker_id:  str
         self.response:   requests.models.Response
         self.pgn:        _io.TextIOWrapper
         self.start_byte: int
-        self.worker_id = None
-
-    def init_stream(self):
-        self.metadata = load_metadata(self)
 
     def start_stream(self, start_byte='0'):
-        response = download(self, start_byte, stream=True)
-        pgn = decompress(self, response)
-        return response, pgn
+        self.start_byte = int(start_byte)
+        self.response = download(self, start_byte, stream=True)
+        self.pgn = decompress(self, self.response)
 
     def resume_stream(self):
         # Starts stream at nearest zstd frame after 'consumed_bytes'.
@@ -41,16 +32,13 @@ class DataStreamer:
         # find_frame_start() returns byte position within the 10 MB file.
         # Add start_byte to get the absolute byte position to resume stream.
         frame_start = start_byte + self.find_frame_start(content)
-        response, pgn = self.start_stream(start_byte=frame_start)
+        self.start_stream(start_byte=frame_start)
         # Discard first game, because frames do not cleanly divide pgns.
         try:
-            print("If you receive an error message from python-chess, "
-                  "this is harmless. Ignore.")
-            print("...")
-            discard = chess.pgn.read_game(pgn)
-            print("...")
+            discard = chess.pgn.read_game(self.pgn)
         finally:
-            return response, pgn, start_byte
+            print("test. appears multiple times? :thonk:")
+            pass
 
     def find_frame_start(self, content):
         # Finds byte position of first decompressable frame.
@@ -67,7 +55,6 @@ class DataStreamer:
         return self.response.raw.tell() + self.start_byte
     
     def read_game(self, min_elo=0):
-        update_metadata(self)
         # Find a pgn which contains evals.
         try:
             while True:
@@ -77,10 +64,10 @@ class DataStreamer:
                 if not has_evals:
                     continue
                 
-                elo_check = filters.min_elo(game, min_elo)
+                elo_check = filters.min_elos(game, min_elo)
                 if not elo_check:
                     continue
 
                 return game
         except:
-            return self.read_game()
+            return self.read_game(min_elo)
