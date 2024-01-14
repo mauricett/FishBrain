@@ -4,8 +4,6 @@ import io
 
 import zstandard as zstd
 
-from data.helper import download, decompress
-
 
 class DataStreamer:
     def __init__(self, buffer_size: int  = 16 * 10**6):
