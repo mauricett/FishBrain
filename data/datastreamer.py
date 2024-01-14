@@ -3,6 +3,7 @@ import requests
 import io
 
 import zstandard as zstd
+import chess.pgn
 
 
 class DataStreamer:
