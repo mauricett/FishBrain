@@ -23,8 +23,9 @@ class LichessData(IterableDataset):
         self.data_streamer: data.datastreamer.DataStreamer
 
     def get_data_url(self, worker_id):
-        link_list = requests.get("https://database.lichess.org/standard/list.txt")
-        lines = link_list.text.splitlines()
+        with open("data/metadata/list.txt", "r") as file:
+            link_list = file.read()
+            lines = link_list.splitlines()
         return lines[worker_id]
 
     def config(self, worker_id):
