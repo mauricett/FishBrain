@@ -10,17 +10,19 @@ class FEN_tokenizer(nn.Module):
                            'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6}
         self.color_dict = {'r': 2, 'n': 2, 'b': 2, 'q': 2, 'k': 2, 'p': 2,
                            'R': 1, 'N': 1, 'B': 1, 'Q': 1, 'K': 1, 'P': 1}
+        self.castle_dict = {'K': 0, 'Q': 1, 'k': 2, 'q': 3}
 
     def __call__(self, fen):
-        return self.piece_embed(fen)
+        return self.tokenize(fen)
 
-    def piece_embed(self, fen):
+    def tokenize(self, fen):
         # Initialize the tensors
-        pieces = torch.zeros(8, 8, dtype=torch.long)
-        colors = torch.zeros(8, 8, dtype=torch.long)
+        pieces = torch.zeros(8, 8, dtype=torch.int, pin_memory=True)
+        colors = torch.zeros(8, 8, dtype=torch.int, pin_memory=True)
+        castle_enpassent = torch.zeros(5, dtype=torch.int, pin_memory=True)
 
-        # Split the FEN string into rows       
-        position, turn, castling, _, _, _ = fen.split(' ')
+        # Split FEN string into 
+        position, turn, castling, enpassent, _, _ = fen.split(' ')
         rows = position.split('/')
 
         # Iterate over the rows and columns and fill the tensors
@@ -36,4 +38,14 @@ class FEN_tokenizer(nn.Module):
                     colors[i, col] = self.color_dict[char]
                     col += 1
 
-        return pieces, colors
+        # Indicate a castling right with 1
+        if castling != '-':
+            for char in castling:
+                idx = self.castle_dict[char]
+                castle_enpassent[idx] = 1
+
+        # For now, en passent is also binary
+        if enpassent != '-':
+            castle_enpassent[4] = 1
+
+        return pieces, colors, castle_enpassent
