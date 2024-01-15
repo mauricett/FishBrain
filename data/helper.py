@@ -19,7 +19,7 @@ def load_metadata(streamer):
         streamer.metadata = json.load(file)
 
 def update_metadata(streamer):
-    # Keep track of the absolute byte position to support resume.
+    # Keep track of the absolute byte position to support resuming.
     worker_id = transform_worker_id(streamer)
     consumed_bytes = streamer.tell()
     if consumed_bytes > streamer.metadata['consumed_bytes']:
