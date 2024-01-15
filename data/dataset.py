@@ -3,12 +3,17 @@ import requests
 import json
 
 import chess.pgn
-from torch.utils.data import IterableDataset
+from torch.utils.data import IterableDataset, get_worker_info
 
 from data.datastreamer import DataStreamer
 from data.helper import save_metadata, load_metadata, update_metadata
 import data.filters as filters
 
+
+def worker_init_fn(worker_id):
+    worker_info = get_worker_info()
+    dataset = worker_info.dataset
+    dataset.config(worker_id)
 
 class LichessData(IterableDataset):
     def __init__(self, min_elo, resume):
@@ -46,7 +51,6 @@ class LichessData(IterableDataset):
                 has_evals = filters.has_evals(game)
                 if not has_evals:
                     continue
-                
                 elo_check = filters.min_elos(game, self.min_elo)
                 if not elo_check:
                     continue

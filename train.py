@@ -1,13 +1,6 @@
 #%%
-from torch.utils.data import DataLoader, get_worker_info
-
-from data.dataset import LichessData
-
-
-def worker_init_fn(worker_id):
-    worker_info = get_worker_info()
-    dataset = worker_info.dataset
-    dataset.config(worker_id)
+from torch.utils.data import DataLoader
+from data.dataset import LichessData, worker_init_fn
 
 #%%
 lichess_data = LichessData(min_elo=0, resume=False)
@@ -25,8 +18,8 @@ for i in dataloader:
 
 
 #%%
-# case 2 - resume=True
-# need to load metadata for each worker and properly resume stream
+# If python-chess prints an error, this is harmless. The decompressable
+# chunks do not cleanly divide pgns. The erroneous data is discarded.
 lichess_data = LichessData(min_elo=0, resume=True)
 dataloader = DataLoader(lichess_data, batch_size=8, 
                         num_workers=2, worker_init_fn=worker_init_fn)

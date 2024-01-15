@@ -10,12 +10,12 @@ def transform_worker_id(streamer):
 
 def save_metadata(streamer):
     worker_id = transform_worker_id(streamer)
-    with open("data/metadata" + str(worker_id), "w") as file:
+    with open("data/metadata/worker" + str(worker_id), "w") as file:
         json.dump(streamer.metadata, file)
 
 def load_metadata(streamer):
     worker_id = transform_worker_id(streamer)
-    with open("data/metadata" + str(worker_id), "r") as file:
+    with open("data/metadata/worker" + str(worker_id), "r") as file:
         streamer.metadata = json.load(file)
 
 def update_metadata(streamer):
