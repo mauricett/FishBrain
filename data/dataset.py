@@ -44,8 +44,8 @@ class LichessData(IterableDataset):
 
     def read_game(self):
         # Find a pgn which contains evals.
-        try:
-            while True:
+        while True:
+            try:
                 game = chess.pgn.read_game(self.data_streamer.pgn)
 
                 has_evals = filters.has_evals(game)
@@ -54,10 +54,9 @@ class LichessData(IterableDataset):
                 elo_check = filters.min_elos(game, self.min_elo)
                 if not elo_check:
                     continue
-
-                return game
-        except:
-            return self.read_game()
+            except:
+                continue
+            return game
 
     def __iter__(self):
         while True:
