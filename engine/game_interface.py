@@ -14,11 +14,12 @@ class GameInterface():
         n_moves = self.game.end().ply()
         return n_moves
 
-    def forward_random_(self):
-        # pick random board position except the final position
-        n_moves = random.randint(0, self.n_moves - 1)
+    def random_ply(self, exclude_first=3, exclude_last=1):
+        # pick random ply, excluding some number of early and late plys
+        n_moves = self.count_moves()
+        n_moves = random.randint(exclude_first, n_moves - exclude_last)
         for n in range(n_moves):
-            self.next()
+            self.game = self.game.next()
         return self.game
 
     def fen(self):
@@ -26,7 +27,7 @@ class GameInterface():
 
     def legal_moves(self):
         moves = []
-        for move in self.board().legal_moves:
+        for move in self.game.board().legal_moves:
             moves.append(move)
         return moves
 
