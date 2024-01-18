@@ -7,7 +7,7 @@ import chess.pgn
 
 
 class DataStreamer:
-    def __init__(self, buffer_size: int  = 16 * 10**6):
+    def __init__(self, buffer_size: int  = 10**5):
         self.buffer_size = buffer_size
         # metadata and worker_id are handled by DataLoader
         self.metadata:   dict
