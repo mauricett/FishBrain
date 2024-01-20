@@ -1,5 +1,6 @@
 def has_evals(game):
-    has_eval = game.next().eval()
+    # For safety, we check for evals at the 2nd and 2nd-last position
+    has_eval = game.next().eval() and game.end().parent.eval()
     return has_eval
 
 def min_elos(game, min_elo):
