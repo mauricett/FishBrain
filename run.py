@@ -1,3 +1,7 @@
+"""
+    THIS IS A MOCK INTERFACE, NOT IMPLEMENTED YET :)
+"""
+
 import inference.fishbrain as fishbrain
 
 engine = fishbrain.Engine(
