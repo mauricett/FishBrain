@@ -30,17 +30,15 @@ class GameInterface():
                 return self.game.board().mirror().fen()
             case False:
                 return self.game.board().fen()
-
-    def move_indices(self, move, mirror) -> list:
-        move = move.uci()
-        # Get integer representations of move's squares.
-        from_square = chess.Move.from_uci(move).from_square
-        to_square = chess.Move.from_uci(move).to_square
-        # Have to mirror moves if we're playing as black.
-        if mirror:
-            from_square = chess.square_mirror(from_square)
-            to_square = chess.square_mirror(to_square)
-        return [from_square, to_square]
+        
+    def next_move(self):
+        return self.game.next().move
+    
+    def next_eval(self):
+        return self.game.next().eval()
+    
+    def turn(self):
+        return self.game.board().turn
         
     def legal_moves(self):
         moves = []
