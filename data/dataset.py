@@ -3,6 +3,7 @@ import requests
 import json
 
 import chess.pgn
+import torch
 from torch.utils.data import IterableDataset, get_worker_info
 
 import data.filters as filters
@@ -64,39 +65,67 @@ class LichessData(IterableDataset):
 
             except:
                 continue
-            return game
-
-    def __iter__(self):
-        while True:
-            # Load a game into our GameInterface self.chess.
-            self.chess.game = self.read_game()
             # Update number of bytes consumed by streamer.
             update_metadata(self.data_streamer)
+            return game
 
-            # Randomly pick a chess position from the game.
+    def calculate_score(self):
+        # Get SF eval, returns None if no eval available.
+        score = self.chess.next_eval()
+
+        # If there's an SF eval, apply transforms and return result.
+        if score is not None:
+            # Gets integer value in units of centipawns.
+            score = score.relative.score(mate_score=1000000)
+            # Change perspective, always needed here.
+            score = -score
+            # Scale score by small value that doesn't saturate sigmoid.
+            return torch.sigmoid(torch.tensor(score) * 0.006)
+
+        # If there's no SF eval, use terminal outcome to assign score.
+        else:
+            next_pos = self.chess.game.next()
+            outcome = next_pos.board().outcome()
+                
+            # If no terminal condition found, return None to skip game.
+            if outcome is None:
+                return None
+
+            # If a terminal condition exists, use it to assign score.
+            else:
+                outcome = outcome.termination
+                # We only assign scores for these three outcomes.
+                if outcome == chess.Termination.CHECKMATE:
+                    return torch.tensor(1.)
+                elif outcome == chess.Termination.STALEMATE:
+                    return torch.tensor(0.5)
+                elif outcome == chess.Termination.INSUFFICIENT_MATERIAL:
+                    return torch.tensor(0.5)
+                # Skip game if outcome is neither of the above.
+                else:
+                    return None
+
+    def __iter__(self):
+        # Use while...yield to turn streamer into generator.
+        while True:
+            # Get next game from streamer and pick random position.
+            self.chess.game = self.read_game()
             self.chess.game = self.chess.random_ply()
-            # Get next move and corresponding score.
-            move = self.chess.game.next().move
-            score = self.chess.game.next().eval()
 
+            # Get SF eval or handle terminal position.
+            score = self.calculate_score()
+            if score is None:
+                continue
+
+            move = self.chess.next_move()
             # If black's turn, use a mirrored and color-flipped board.
             # This makes it so every position looks like it was white's
             # perspective and turn.
-            turn = self.chess.game.board().turn
-            match turn:
-                case chess.WHITE:
-                    mirror = False
-                case chess.BLACK:
-                    mirror = True
+            mirror = self.chess.turn() == chess.BLACK
+
             fen = self.chess.fen(mirror)
+            fen_indices = self.tokenizer.fen(fen)
+            move_indices = self.tokenizer.move(move, mirror)
 
-            # Turn relevant data into indices for NN's embeddings.
-            indices = self.tokenizer(fen)
-            move_indices = self.chess.move_indices(move, mirror)
-
-            """ TODO:
-            - handle score perspective and type
-            - transform move_indices to reasonable format
-            """ 
-
-            yield {'indices': indices, 'move_indices': move_indices}
+            indices = torch.cat([fen_indices, move_indices])
+            yield {'indices': indices, 'score': score}
