@@ -18,5 +18,18 @@ for i in dataloader:
     if n > 2:
             break
 
+
 #%%
-batches[-1]['move_indices']
+# piece positions
+batches[0]['indices'][0][0:64].view(8, 8)
+# color positions
+batches[0]['indices'][0][64:128].view(8, 8)
+# castling rights
+batches[0]['indices'][0][128:132]
+# en passent
+batches[0]['indices'][0][132:133]
+
+# move
+batches[0]['indices'][0][133:135]
+# score
+batches[0]['score'][0]
