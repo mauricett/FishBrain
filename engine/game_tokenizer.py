@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 
 
-class FEN_tokenizer(nn.Module):
+class Tokenizer(nn.Module):
     def __init__(self):
-        super(FEN_tokenizer, self).__init__()
+        super(Tokenizer, self).__init__()
         # Parameters for tensors of indices to the embedding tokens.
         self.params = {'dtype': torch.long, 'pin_memory': True,
                        'requires_grad': False}
@@ -19,7 +19,8 @@ class FEN_tokenizer(nn.Module):
         self.castle_dict = {'K': (0, 10), 'Q': (1, 11),
                             'k': (2, 12), 'q': (3, 13)}
     
-    def move(self, move, mirror) -> list:
+    def move(self, game_node, mirror):
+        move = game_node.next().move
         # Initialize tensor that holds indices to move embeddings.
         move_idx = torch.zeros(size=(2,), **self.params)
         # Bring move into UCI format for python-chess functions.
@@ -34,7 +35,12 @@ class FEN_tokenizer(nn.Module):
         move_idx[:] = torch.tensor([from_square, to_square])
         return move_idx
 
-    def fen(self, fen):
+    def fen(self, game_node, mirror):
+        if mirror:
+            fen = game_node.board().mirror().fen()
+        else:
+            fen = game_node.board().fen()
+
         # Initialize tensors that hold indices for embedding tokens.
         pieces = torch.zeros(size=(8, 8), **self.params)
         colors = torch.zeros(size=(8, 8), **self.params)
