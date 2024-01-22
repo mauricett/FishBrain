@@ -130,5 +130,4 @@ class LichessData(IterableDataset):
             fen_indices = self.tokenizer.fen(self.chess.game, mirror)
             move_indices = self.tokenizer.move(self.chess.game, mirror)
 
-            indices = torch.cat([fen_indices, move_indices])
-            yield {'indices': indices, 'score': score}
+            yield {'fen': fen_indices, 'move': move_indices, 'score': score}
