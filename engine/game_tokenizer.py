@@ -33,6 +33,9 @@ class Tokenizer(nn.Module):
             from_square = chess.square_mirror(from_square)
             to_square = chess.square_mirror(to_square)
         move_idx[:] = torch.tensor([from_square, to_square])
+        # python-chess indexes moves by starting in the last row.
+        # We want indices to start in the first row of the board.
+        move_idx = (7 - move_idx // 8) * 8 + (move_idx % 8)
         return move_idx
 
     def fen(self, game_node, mirror):
