@@ -96,36 +96,37 @@ class TransformerBlock(nn.Module):
         x = 0.7 * (x + y)
         return x
 
-model = ChessTransformer(D_EMB=1024, N_layers=8)
-model = model.cuda()
-optimizer = optim.Adam(model.parameters(), lr=3e-4)
-
 #%%
-print("start")
-bce_loss = nn.BCELoss()
+if __name__ == '__main__':
+    model = ChessTransformer(D_EMB=1024, N_layers=8)
+    model = model.cuda()
+    optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-loss_plot = []
-n = 0
-for batch in dataloader:
-   
-    fen = batch['fen'].cuda()
-    move = batch['move'].cuda()
-    score = batch['score'].cuda()
+    #%%
+    print("start")
+    bce_loss = nn.BCELoss()
 
-    optimizer.zero_grad()
-    x = model(fen, move).flatten()
+    loss_plot = []
+    n = 0
+    for batch in dataloader:
+    
+        fen = batch['fen'].cuda()
+        move = batch['move'].cuda()
+        score = batch['score'].cuda()
 
-    #loss = (x - score)**2
-    #loss = loss.mean()
+        optimizer.zero_grad()
+        x = model(fen, move).flatten()
 
-    loss = bce_loss(x, score)
-    loss.backward()
-    loss_plot.append(loss.item())
+        #loss = (x - score)**2
+        #loss = loss.mean()
 
-    optimizer.step()
+        loss = bce_loss(x, score)
+        loss.backward()
+        loss_plot.append(loss.item())
 
-    if not (n % 50):
-        plt.plot(loss_plot[30:])
-        plt.show()
-        torch.save(model.state_dict(), 'model/fishweights.pt')
-    n += 1
+        optimizer.step()
+
+        if not (n % 50):
+            plt.plot(loss_plot[30:])
+            plt.show()
+            torch.save(model.state_dict(), 'model/fishweights.pt')
