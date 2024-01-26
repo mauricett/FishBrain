@@ -21,7 +21,7 @@ I will document my experiments and results in technical reports.
 
 # First Practice Run
 I have begun a first training run, and the results are promising. I measure performance by counting how often FishBrain predicts the top move of SF16. For this purpose, I have created a dataset that measures the performance at different numbers of half-moves.
-The results are in the following figure, where I compare the accuracy of FishBrain to SF16 (without tree search) and a random agent. We're already better than SF16 witout search!
+The results are in the following figure, where I compare the accuracy of FishBrain to SF16 (without tree search) and a random agent. We're already better than SF16 without search!
 
 <div align="center">
     <img src="benchmark/sf_0node_accuracy.png" alt="FishBrain Benchmark Results">
