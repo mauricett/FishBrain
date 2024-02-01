@@ -126,8 +126,9 @@ class LichessData(IterableDataset):
             # This makes it so every position looks like it was white's
             # perspective and turn.
             mirror = self.chess.turn() == chess.BLACK
-            
             fen_indices = self.tokenizer.fen(self.chess.game, mirror)
-            move_indices = self.tokenizer.move(self.chess.game, mirror)
+            
+            move = self.chess.game.next().move
+            move_indices = self.tokenizer.move(move, mirror)
 
             yield {'fen': fen_indices, 'move': move_indices, 'score': score}

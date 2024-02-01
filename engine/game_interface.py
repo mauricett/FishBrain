@@ -41,10 +41,7 @@ class GameInterface():
         return self.game.board().turn
         
     def legal_moves(self):
-        moves = []
-        for move in self.game.board().legal_moves:
-            moves.append(move)
-        return moves
+        return list(self.game.board().legal_moves)
 
     def show(self, move_n):
         game = self.game.game()

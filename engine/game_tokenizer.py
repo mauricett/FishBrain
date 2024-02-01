@@ -7,10 +7,6 @@ import torch.nn as nn
 class Tokenizer(nn.Module):
     def __init__(self):
         super(Tokenizer, self).__init__()
-        # Parameters for tensors of indices to the embedding tokens.
-        self.params = {'dtype': torch.long, 'pin_memory': True,
-                       'requires_grad': False}
-
         # Define the mapping for pieces and colors
         self.piece_dict = {'p': 1, 'n': 2, 'b': 3, 'r': 4, 'q': 5, 'k': 6,
                            'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6}
@@ -19,10 +15,10 @@ class Tokenizer(nn.Module):
         self.castle_dict = {'K': (0, 10), 'Q': (1, 11),
                             'k': (2, 12), 'q': (3, 13)}
     
-    def move(self, game_node, mirror):
-        move = game_node.next().move
+    def move(self, move, mirror):
+        #move = game_node.next().move
         # Initialize tensor that holds indices to move embeddings.
-        move_idx = torch.zeros(size=(2,), **self.params)
+        move_idx = torch.zeros(size=(2,))
         # Bring move into UCI format for python-chess functions.
         move = move.uci()
         # Get integer representations of move's squares.
@@ -45,10 +41,10 @@ class Tokenizer(nn.Module):
             fen = game_node.board().fen()
 
         # Initialize tensors that hold indices for embedding tokens.
-        pieces = torch.zeros(size=(8, 8), **self.params)
-        colors = torch.zeros(size=(8, 8), **self.params)
-        castles = torch.full(size=(4,), fill_value=9, **self.params)
-        enpassent = torch.full(size=(1,), fill_value=14, **self.params)
+        pieces = torch.zeros(size=(8, 8))
+        colors = torch.full(size=(8, 8), fill_value=9)
+        castles = torch.full(size=(4,), fill_value=14)
+        enpassent = torch.full(size=(1,), fill_value=15)
 
         # Split FEN string into
         position, turn, castling, enpas, _, _ = fen.split(' ')
@@ -73,9 +69,9 @@ class Tokenizer(nn.Module):
                 i, embed_token = self.castle_dict[char]
                 castles[i] = embed_token
 
-        # En passent is a binary indicator for now (14=no, 15=yes)
+        # En passent is a binary indicator for now (15=no, 16=yes)
         if enpas != '-':
-            enpassent[:] = 15
+            enpassent[:] = 16
 
         flat = torch.cat([pieces.flatten(), colors.flatten(), castles, enpassent])
         return flat
