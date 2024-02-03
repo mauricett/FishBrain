@@ -14,10 +14,10 @@ model = ChessTransformer(D_EMB=512, N_layers=4)
 model = model.cuda()
 optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-lichess_data = LichessData(min_elo=0, resume=True)
+lichess_data = LichessData(min_elo=0, resume=False)
 # !!! Use num_workers <= 5 to prevent being rate-limited by Lichess !!!
 dataloader = DataLoader(lichess_data, batch_size=512, 
-                        num_workers=5, worker_init_fn=worker_init_fn)
+                        num_workers=4, worker_init_fn=worker_init_fn)
 
 print("start")
 bce_loss = nn.BCELoss()
