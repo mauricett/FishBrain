@@ -49,26 +49,10 @@ class LichessData(IterableDataset):
             self.data_streamer.resume_stream()
 
     def read_game(self):
-        # Find a pgn which passes our filters.
-        while True:
-            # Wrap read_game() in try/except to skip dirty data.
-            try:
-                game = chess.pgn.read_game(self.data_streamer.pgn)
-
-                # Check if game has SF evals. Note, terminal positions
-                # are allowed to not have an eval and pass the filter.
-                has_evals = filters.has_evals(game)
-                if not has_evals:
-                    continue
-                elo_check = filters.min_elos(game, self.min_elo)
-                if not elo_check:
-                    continue
-
-            except:
-                continue
-            # Update number of bytes consumed by streamer.
-            update_metadata(self.data_streamer)
-            return game
+        game = chess.pgn.read_game(self.data_streamer.pgn)
+        # Update number of bytes consumed by streamer.
+        update_metadata(self.data_streamer)
+        return game
     
     def calculate_score(self):
         # Get SF eval, returns None if no eval available.
