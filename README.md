@@ -1,10 +1,9 @@
 # FishBrain
 
 <div align="center">
-    <img src="img/logo_alpha_4.png" alt="Logo" width="256" height="256">
+    <img src="img/logo_alpha_4.png" alt="Logo" width="196" height="196">
 </div>
 
-&nbsp;
 &nbsp;
 
 <div align="center">
