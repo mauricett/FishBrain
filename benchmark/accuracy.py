@@ -71,7 +71,7 @@ class Tester:
             mirror = turn == 'b'
             
             fen = " ".join([pos, turn, cas, enp])
-            fen_token_idx = self.tokenizer.fen_fast2(fen, mirror)
+            fen_token_idx = self.tokenizer.fen(fen, mirror)
 
             for move in moves:
                 move_token_idx = self.tokenizer.move(move, mirror)
@@ -93,13 +93,6 @@ class Tester:
 
             legal_moves = batch['moves'][pos]
             n_moves = len(legal_moves)
-
-            # All FENs at index [b] are the same,
-            # they all correspond to a different legal move.
-            # Test if we need to mirror the current FEN.
-            fen = batch['fens'][pos][0]
-            turn = fen.split(" ")[1]
-            mirror = turn == 'b'
 
             model_prediction = scores[pointer : pointer+n_moves]            
             pointer += n_moves
