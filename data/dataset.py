@@ -10,7 +10,7 @@ import data.filters as filters
 from data.datastreamer import DataStreamer
 from data.helper import save_metadata, load_metadata, update_metadata
 from engine.game_interface import GameInterface
-from engine.game_tokenizer import Tokenizer
+from engine.tokenizer import Tokenizer
 
 
 def worker_init_fn(worker_id):
