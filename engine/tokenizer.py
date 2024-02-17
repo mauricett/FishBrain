@@ -2,9 +2,8 @@ import chess
 import numpy as np
 
 
-class Tokenizer(nn.Module):
+class Tokenizer:
     def __init__(self):
-        super(Tokenizer, self).__init__()
         # Define the mapping for pieces and colors
         self.piece_dict = {'p': 1, 'n': 2, 'b': 3, 'r': 4, 'q': 5, 'k': 6,
                            'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6}
