@@ -11,7 +11,6 @@ def sigmoid(x):
 def scorer(score):
     if score.lstrip("-").isdigit():
         return sigmoid(-float(score) * 0.006)
-
     else:
         match score:
             case 'C':
@@ -41,5 +40,4 @@ def process_sample(example, tokenizer, scorer):
     example['moves'] = tokenizer.move(moves[next_idx], mirror)
     scores = scores[next_idx]
     example['scores'] = scorer(scores)
-
     return example
