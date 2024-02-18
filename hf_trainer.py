@@ -77,7 +77,7 @@ for epoch in range(n_epochs):
             model_dict['steps'].append(n_steps)
             
             print("%.1f accuracy, %i positions / s" % \
-                    (model_dict['acc'][-1].mean(), speed))
+                    (model_dict['acc'][-1].mean() * 100, speed))
 
             torch.save(model.state_dict(), 'model/fishweights.pt')
             torch.save(optimizer.state_dict(), "model/optimizer.pt")
