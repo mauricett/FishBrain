@@ -106,7 +106,7 @@ class Tester:
         n_plies = len(self.evals)
         n_games = len(self.evals[0])
 
-        results = np.zeros((n_plies, n_games))
+        results = np.zeros((1, n_plies, n_games))
 
         for ply in range(n_plies):
             for game in range(n_games):
