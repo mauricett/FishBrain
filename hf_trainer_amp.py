@@ -15,8 +15,8 @@ from data.tokenizer import Tokenizer
 from model.conv_v0.model import ConvTransformer
 
 
-BATCHSIZE = 256
-N_CHECKPOINT = 500
+BATCHSIZE = 512
+N_CHECKPOINT = 5000
 D_EMB = 256
 N_LAYERS = 4
 N_HEADS = 4
@@ -62,7 +62,7 @@ for epoch in range(n_epochs):
 
         with torch.autocast(device_type="cuda"):
             x = model(batch['fens'], batch['moves'])
-            scores = batch['scores'].float().to(device)
+            scores = batch['scores'].to(device)
             loss = bce_loss(x, scores)
 
         loss.backward()
