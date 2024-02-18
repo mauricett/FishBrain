@@ -105,7 +105,7 @@ class ConvTransformer(nn.Module):
         B, D, T = x.shape
 
         x = norm(x)
-        y = self.emb_transformer(x)    
+        y = self.emb_attention(x)    
         x = x[:, :, :64] + y[:, :, :64]
         x = norm(x)
 
