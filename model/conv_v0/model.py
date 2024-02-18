@@ -34,7 +34,7 @@ class ConvTransformerBlock(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(D_EMB, D_EMB, kernel_size=(3,3), padding='same')
         self.conv2 = nn.Conv2d(D_EMB, D_EMB, kernel_size=(3,3), padding='same')
-        self.transformer = MHA(D_EMB, SCALE, N_heads)
+        self.attention = MHA(D_EMB, SCALE, N_heads)
 
     def forward(self, x):
         B, D, T = x.shape
