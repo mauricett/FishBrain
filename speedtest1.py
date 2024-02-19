@@ -16,7 +16,7 @@ from model.conv_v0.model import ConvTransformer
 
 
 BATCHSIZE = 256
-N_CHECKPOINT = 100
+N_CHECKPOINT = 10
 D_EMB = 256
 N_LAYERS = 4
 N_HEADS = 4
