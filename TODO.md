@@ -1,8 +1,23 @@
 
 
 #### 2024.02.20
+### Managing model data / training runs:
+- Have a helper class to organize models and training data?
+
+### Training script:
+- Add proper resume function
+- Add arguments for mixed precision training:
+    - enable=True/False
+    - arguments for GradScaler
+- Save GradScaler state
+- Save more infos in model_dict, such as
+    - batchsize for each checkpoint
+    - 
+
+### DataLoader:
+- Add support for old DataLoader
+
 ### Some basic ease-of-use extensions to the scripts:
-- Merge all training scripts into single script.
 - In speedtest.py and hf_trainer(_multi).py, add:
     - argparse launch args for 
         - CPU or CUDA + optional device IDs
