@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from test.accuracy import Tester
+from metrics.accuracy import Tester
 from data.processors import process_sample, scorer
 from data.tokenizer import Tokenizer
 from model.conv_v0.model import ConvTransformer
