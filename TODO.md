@@ -1,6 +1,12 @@
 
 
 #### 2024.02.20
+
+### Inference / Engine
+- Script to play against the NN
+- UCI interface?
+- Duels against Stockfish for Benchmarking?
+
 ### Managing model data / training runs:
 - Have a helper class to organize models and training data?
 
