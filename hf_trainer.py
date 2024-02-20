@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from benchmark.accuracy import Tester
+from test.accuracy import Tester
 from data.processors import process_sample, scorer
 from data.tokenizer import Tokenizer
 from model.conv_v0.model import ConvTransformer
@@ -17,7 +17,7 @@ from model.conv_v0.model import ConvTransformer
 
 BATCHSIZE = 256
 N_CHECKPOINT = 500
-D_EMB = 256
+D_EMB = 128
 N_LAYERS = 4
 N_HEADS = 4
 device = 'cuda'

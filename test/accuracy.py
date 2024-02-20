@@ -10,7 +10,7 @@ class Tester:
         self.batchsize = batchsize
         self.tokenizer = tokenizer
         self.size_counter = 0
-        with open("benchmark/data/sf_test_accuracy.pkl", "rb") as file:
+        with open("test/data/sf_test_accuracy.pkl", "rb") as file:
             self.evals = pickle.load(file)
 
     def __call__(self, model):
