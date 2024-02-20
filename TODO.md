@@ -15,6 +15,9 @@
     - learning rate for each checkpoint
 - Support to change batchsize and learning rate over time (+ resume)
 
+### Config Files?
+- Training script will have lots of args. Might need YAML config or so.
+
 ### DataLoader:
 - Add support for old DataLoader
 
