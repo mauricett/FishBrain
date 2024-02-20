@@ -19,6 +19,7 @@
 - Save more infos in model_dict, such as
     - batchsize for each checkpoint
     - learning rate for each checkpoint
+    - save hyperparams (model params) for automated model loading
 - Support to change batchsize and learning rate over time (+ resume)
 
 ### Config Files?
