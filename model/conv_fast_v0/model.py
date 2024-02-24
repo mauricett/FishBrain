@@ -66,7 +66,7 @@ class ConvTransformer(nn.Module):
         self.transformer = nn.ModuleList(
             [ConvTransformerBlock(D_EMB, SCALE * 0.64, self.H) for i in range(N_layers)])
 
-        self.ln3 = nn.LayerNorm(D_EMB)
+        self.ln3 = nn.LayerNorm(64)
         self.conv_out = nn.Conv2d(D_EMB, 2 * D_EMB, kernel_size=(3, 3), padding='same', bias=False)
         self.conv_out2 = nn.Conv2d(2 * D_EMB, 1, kernel_size=(8, 8))
 
