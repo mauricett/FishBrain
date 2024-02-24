@@ -35,6 +35,7 @@ class ConvTransformerBlock(nn.Module):
         y = self.conv(y)
         y = F.leaky_relu(y, negative_slope=0.2)
         y = self.conv2(y)
+        y = F.leaky_relu(y, negative_slope=0.2)
         y = y.reshape(B, D, T)
 
         x = x + y
