@@ -35,7 +35,6 @@ class ConvTransformerBlock(nn.Module):
         y = self.conv(y)
         y = F.leaky_relu(y, negative_slope=0.2)
         y = self.conv2(y)
-        y = F.leaky_relu(y, negative_slope=0.2)
         y = y.reshape(B, D, T)
 
         x = x + y
@@ -57,7 +56,6 @@ class ConvTransformer(nn.Module):
         self.fen_emb = nn.Parameter(torch.randn(17, self.D_EMB) * SCALE)
         self.move_emb = nn.Parameter(torch.randn(2, self.D_EMB) * SCALE)
         self.abs_emb = nn.Parameter(torch.randn(71, self.D_EMB) * SCALE)
-        self.cls_emb = nn.Parameter(torch.randn(1, 9, self.D_EMB) * SCALE)
         
         self.ln1 = nn.LayerNorm(71)
         self.emb_attention = MHA(D_EMB, SCALE, self.H)
@@ -67,7 +65,7 @@ class ConvTransformer(nn.Module):
             [ConvTransformerBlock(D_EMB, SCALE * 0.64, self.H) for i in range(N_layers)])
 
         self.ln3 = nn.LayerNorm(64)
-        self.conv_out = nn.Conv2d(D_EMB, 2 * D_EMB, kernel_size=(3, 3), padding='same', bias=False)
+        self.conv_out = nn.Conv2d(D_EMB, 2 * D_EMB, kernel_size=(3, 3), padding='same')
         self.conv_out2 = nn.Conv2d(2 * D_EMB, 1, kernel_size=(8, 8))
 
     def embed(self, fen, move):
