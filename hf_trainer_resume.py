@@ -102,9 +102,6 @@ for epoch in range(n_epochs):
         if not (n_steps % N_CHECKPOINT):
             speed = (N_CHECKPOINT * BATCHSIZE) / (time.perf_counter() - timer)
             
-            plt.plot(model_dict['loss'][30:])
-            plt.show()
-
             accuracy = tester(model)
             model_dict['acc'] = np.concatenate([model_dict['acc'], accuracy])
             model_dict['steps'].append(n_steps)
