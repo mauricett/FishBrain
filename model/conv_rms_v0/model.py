@@ -11,17 +11,18 @@ class RMSNorm(nn.Module):
 
     def forward(self, x, dim):
         denom = torch.pow(x, 2).mean(dim, keepdim=True)
-        x = x / torch.sqrt(denom + self.eps)
+        x = x * torch.rsqrt(denom + self.eps)
         return self.weights * x
 
 
 class MHA(nn.Module):
-    def __init__(self, D_EMB, SCALE, N_heads):
+    def __init__(self, D_EMB, SCALE, N_heads, N_tokens=64):
         super().__init__()
         self.H = N_heads
         self.d_emb = torch.tensor(D_EMB)
 
-        self.norm = RMSNorm(weight_shape=(1,))
+        #self.norm = RMSNorm(weight_shape=(1,))
+        self.norm = nn.LayerNorm(N_tokens)
 
         qkv_shape = (3, N_heads, D_EMB, D_EMB // N_heads)
         self.qkv = nn.Parameter(torch.randn(qkv_shape) * SCALE)
@@ -30,8 +31,10 @@ class MHA(nn.Module):
         B, D, T = x.shape
 
         x = F.leaky_relu(x, negative_slope=0.2)
+        #x = self.norm(x, dim=-1)
+        x = self.norm(x)
         x = torch.einsum('bdt, nhdD -> nbhtD', x, self.qkv)
-        x = self.norm(x, dim=-2)
+        #x = self.norm(x, dim=-2)
 
         q, k, v = x[0], x[1], x[2]
         attn = q @ k.transpose(-1, -2) / torch.sqrt(self.d_emb // self.H)
@@ -53,16 +56,19 @@ class ConvBlock(nn.Module):
         self.conv2.weight.data *= SCALE
         self.conv2.bias.data *= 0
 
-        self.norm = RMSNorm(weight_shape=(1,))
+        #self.norm = RMSNorm(weight_shape=(1,))
+        self.norm = nn.LayerNorm(64)
 
     def forward(self, x):
         B, D, T = x.shape
-        x = x.reshape(B, D, 8, 8)
 
         x = F.leaky_relu(x, negative_slope=0.2)
+        x = self.norm(x)
+        
+        x = x.reshape(B, D, 8, 8)
         x = self.conv(x)
 
-        x = self.norm(x, dim=(-1, -2))
+        #x = self.norm(x, dim=(-1, -2))
 
         x = F.leaky_relu(x, negative_slope=0.2)
         x = self.conv2(x)
@@ -71,9 +77,9 @@ class ConvBlock(nn.Module):
 
 
 class ConvTransformerBlock(nn.Module):
-    def __init__(self, D_EMB, SCALE, N_heads):
+    def __init__(self, D_EMB, SCALE, N_heads, N_tokens):
         super().__init__()
-        self.attention = MHA(D_EMB, SCALE, N_heads)
+        self.attention = MHA(D_EMB, SCALE, N_heads, N_tokens)
         self.conv = ConvBlock(D_EMB, SCALE)
 
     def forward(self, x):
@@ -91,7 +97,7 @@ class ConvTransformerBlock(nn.Module):
 class Net(nn.Module):
     def __init__(self, D_EMB, N_layers, N_heads):
         super().__init__()
-        SCALE = 0.01
+        SCALE = 0.02
         self.D_EMB = D_EMB
         self.H = N_heads
 
@@ -101,14 +107,15 @@ class Net(nn.Module):
         self.move_emb = nn.Parameter(torch.randn(2, self.D_EMB) * SCALE)
         self.abs_emb = nn.Parameter(torch.randn(71, self.D_EMB) * SCALE)
 
-        self.emb_attention = MHA(D_EMB, SCALE, self.H)
+        self.emb_attention = MHA(D_EMB, SCALE, self.H, N_tokens=71)
         self.layernorm = nn.LayerNorm(71)
 
         self.transformer = nn.ModuleList(
-            [ConvTransformerBlock(D_EMB, SCALE * 0.64, self.H) for i in range(N_layers)])
+            [ConvTransformerBlock(D_EMB, SCALE * 0.64, self.H, N_tokens=64) for i in range(N_layers)])
 
-        self.norm = RMSNorm(weight_shape=(1,))
-        
+        #self.norm = RMSNorm(weight_shape=(1,))
+        self.layernorm2 = nn.LayerNorm(64)
+
         self.conv_out = nn.Conv2d(D_EMB, 2 * D_EMB, kernel_size=(3, 3), padding='same')
         self.conv_out.weight.data *= SCALE
         self.conv_out.bias.data *= 0
@@ -145,11 +152,15 @@ class Net(nn.Module):
         for layer in self.transformer:
             x = layer(x)
         
-        x = x.view(B, D, 8, 8)
         x = F.leaky_relu(x, negative_slope=0.2)
+        
+        #x = self.norm(x, dim=-1)
+        x = self.layernorm2(x)
+        
+        x = x.view(B, D, 8, 8)
         x = self.conv_out(x)
         
-        x = self.norm(x, dim=(-1, -2))
+        #x = self.norm(x, dim=(-1, -2))
 
         x = F.leaky_relu(x, negative_slope=0.2)
         x = self.conv_out2(x)
