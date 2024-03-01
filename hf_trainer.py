@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from metrics.accuracy import Tester
 from data.processors import process_sample, scorer
 from data.tokenizer import Tokenizer
-from model.conv_fast_v0.model import Net
+from model.conv_fast_v0.model import ConvTransformer
 
 
 BATCHSIZE = 1024
