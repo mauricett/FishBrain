@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from metrics.accuracy import Tester
 from data.processors import process_sample, scorer
 from data.tokenizer import Tokenizer
-from model.conv_unnorm_v0.model import Net
+from model.conv_fast_v0.model import Net
 
 
 BATCHSIZE = 1024
@@ -25,7 +25,7 @@ device = 'cuda'
 tokenizer = Tokenizer()
 tester = Tester(batchsize=BATCHSIZE, tokenizer=tokenizer)
 
-dataset = load_dataset(path="../FishData/lichess_sf.py",
+dataset = load_dataset(path="mauricett/lichess_sf",
                        split="train",
                        streaming=True,
                        trust_remote_code=True)
@@ -38,7 +38,7 @@ dataloader = DataLoader(dataset,
                         num_workers=4)
 
 #%%
-model = Net(D_EMB, N_LAYERS, N_HEADS)
+model = ConvTransformer(D_EMB, N_LAYERS, N_HEADS)
 model = model.to(device)
 model = torch.compile(model)
 model_dict = {'acc': np.zeros((1, 62, 100)),
