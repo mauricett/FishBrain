@@ -7,7 +7,7 @@ class MHA(nn.Module):
     def __init__(self, D_EMB, SCALE, N_heads):
         super().__init__()
         self.H = N_heads
-        self.d_emb = torch.tensor(D_EMB)
+        self.d_emb = torch.tensor(D_EMB).cuda()
         qkv_size = (3, N_heads, D_EMB, D_EMB // N_heads)
         self.qkv = nn.Parameter(torch.randn(qkv_size) * SCALE)
 
