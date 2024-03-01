@@ -12,11 +12,11 @@ from torch.utils.data import DataLoader
 from metrics.accuracy import Tester
 from data.processors import process_sample, scorer
 from data.tokenizer import Tokenizer
-from model.conv_v0.model import ConvTransformer
+from model.conv_unnorm_v0.model import Net
 
 
-BATCHSIZE = 256
-N_CHECKPOINT = 500
+BATCHSIZE = 1024
+N_CHECKPOINT = 2500
 D_EMB = 128
 N_LAYERS = 4
 N_HEADS = 4
@@ -25,9 +25,10 @@ device = 'cuda'
 tokenizer = Tokenizer()
 tester = Tester(batchsize=BATCHSIZE, tokenizer=tokenizer)
 
-dataset = load_dataset(path="mauricett/lichess_sf",
+dataset = load_dataset(path="../FishData/lichess_sf.py",
                        split="train",
-                       streaming=True)
+                       streaming=True,
+                       trust_remote_code=True)
 
 dataset = dataset.map(function=process_sample, 
                       fn_kwargs={"tokenizer": tokenizer, "scorer": scorer})
@@ -37,14 +38,19 @@ dataloader = DataLoader(dataset,
                         num_workers=4)
 
 #%%
-model = ConvTransformer(D_EMB, N_LAYERS, N_HEADS)
+model = Net(D_EMB, N_LAYERS, N_HEADS)
 model = model.to(device)
+model = torch.compile(model)
 model_dict = {'acc': np.zeros((1, 62, 100)),
               'steps': [0],
-              'loss': []}
+              'loss': [],
+              'batchsize': [BATCHSIZE],
+              'grad_norm': []}
 
-optimizer = optim.Adam(model.parameters(), lr=3e-4)
+optimizer = optim.Adam(model.parameters(), lr=3e-4, amsgrad=True)
 bce_loss = nn.BCEWithLogitsLoss()
+
+max_norm = 3
 
 #%%
 n_steps = 0
@@ -64,6 +70,9 @@ for epoch in range(n_epochs):
         loss = bce_loss(x, scores)
         loss.backward()
 
+        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
+        model_dict['grad_norm'].append(float(grad_norm.cpu()))
+
         optimizer.step()
         n_steps += 1
 
@@ -75,7 +84,8 @@ for epoch in range(n_epochs):
             accuracy = tester(model)
             model_dict['acc'] = np.concatenate([model_dict['acc'], accuracy])
             model_dict['steps'].append(n_steps)
-            
+            model_dict['batchsize'].append(BATCHSIZE)
+
             print("%.1f accuracy, %i positions / s" % \
                     (model_dict['acc'][-1].mean() * 100, speed))
 
