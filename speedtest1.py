@@ -30,7 +30,7 @@ device = 'cuda'
 tokenizer = Tokenizer()
 tester = Tester(batchsize=BATCHSIZE, tokenizer=tokenizer)
 
-dataset = load_dataset(path="../FishData/lichess_sf.py",
+dataset = load_dataset(path="mauricett/lichess_sf",
                        split="train",
                        streaming=True,
                        trust_remote_code=True)
@@ -69,9 +69,7 @@ for epoch in range(n_epochs):
         optimizer.zero_grad()
 
         with torch.autocast(device_type="cuda", enabled=True):
-            fens = batch['fens'].cuda()
-            moves = batch['moves'].cuda()
-            x = model(fens, moves)
+            x = model(batch['fens'].cuda(), batch['moves'].cuda())
             scores = batch['scores'].float().to(device)
             loss = bce_loss(x, scores)
 
