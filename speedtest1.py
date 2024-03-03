@@ -12,12 +12,17 @@ from torch.utils.data import DataLoader
 from metrics.accuracy import Tester
 from data.processors import process_sample, scorer
 from data.tokenizer import Tokenizer
-from model.conv_v0.model import ConvTransformer
+#from model.conv_big_v0.model import ConvTransformer
+#from model.conv_fast_v0.model import ConvTransformer
+#from model.conv_rms_v0.model import Net
+from model.conv_fast_v0.model import ConvTransformer
 
+#torch.set_float32_matmul_precision('highest')
+torch.set_float32_matmul_precision('high')
 
-BATCHSIZE = 256
+BATCHSIZE = 2048
 N_CHECKPOINT = 10
-D_EMB = 256
+D_EMB = 128
 N_LAYERS = 4
 N_HEADS = 4
 device = 'cuda'
@@ -25,20 +30,23 @@ device = 'cuda'
 tokenizer = Tokenizer()
 tester = Tester(batchsize=BATCHSIZE, tokenizer=tokenizer)
 
-dataset = load_dataset(path="mauricett/lichess_sf",
+dataset = load_dataset(path="../FishData/lichess_sf.py",
                        split="train",
-                       streaming=True)
+                       streaming=True,
+                       trust_remote_code=True)
 
 dataset = dataset.map(function=process_sample, 
                       fn_kwargs={"tokenizer": tokenizer, "scorer": scorer})
 
 dataloader = DataLoader(dataset, 
                         batch_size=BATCHSIZE,
-                        num_workers=4)
+                        num_workers=8)
 
 #%%
+#model = Net(D_EMB, N_LAYERS, N_HEADS)
 model = ConvTransformer(D_EMB, N_LAYERS, N_HEADS)
 model = model.to(device)
+model = torch.compile(model)
 model_dict = {'acc': np.zeros((1, 62, 100)),
               'steps': [0],
               'loss': []}
@@ -51,26 +59,29 @@ n_steps = 0
 n_epochs = 100
 timer = time.perf_counter()
 
-
 for epoch in range(n_epochs):
     print("Epoch %i" % epoch)
 
     dataset = dataset.shuffle()
 
     for batch in dataloader:
+        
         optimizer.zero_grad()
 
-        with torch.autocast(device_type="cuda"):
-            x = model(batch['fens'], batch['moves'])
-            scores = batch['scores'].to(device)
+        with torch.autocast(device_type="cuda", enabled=True):
+            fens = batch['fens'].cuda()
+            moves = batch['moves'].cuda()
+            x = model(fens, moves)
+            scores = batch['scores'].float().to(device)
             loss = bce_loss(x, scores)
 
         loss.backward()
 
         optimizer.step()
-        n_steps += 1
 
         model_dict['loss'].append(loss.item())
+        
+        n_steps += 1
 
         if not (n_steps % N_CHECKPOINT):
             speed = (N_CHECKPOINT * BATCHSIZE) / (time.perf_counter() - timer)

@@ -65,7 +65,7 @@ for epoch in range(n_epochs):
     for batch in dataloader:
         optimizer.zero_grad()
 
-        x = model(batch['fens'], batch['moves'])
+        x = model(batch['fens'].cuda(), batch['moves'].cuda())
         scores = batch['scores'].float().to(device)
         loss = bce_loss(x, scores)
         loss.backward()
