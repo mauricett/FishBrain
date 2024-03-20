@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 
 # Neural net parameters
-BATCHSIZE = 1024
+BATCHSIZE = 2048
 D_EMB = 128
 N_LAYERS = 4
 N_HEADS = 1
@@ -27,7 +27,7 @@ torch.set_float32_matmul_precision('high')
 RESUME = True
 LOAD_PATH = 'model/conv_nhwc_v0/'
 SAVE_PATH = 'model/'
-DATASET = '../FishData/lichess_sf.py'
+DATASET = 'maurice/lichess_sf'
 NUM_WORKERS = 4
 
 # Training loop
