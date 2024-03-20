@@ -27,7 +27,7 @@ torch.set_float32_matmul_precision('high')
 RESUME = True
 LOAD_PATH = 'model/conv_nhwc_v0/'
 SAVE_PATH = 'model/'
-DATASET = 'maurice/lichess_sf'
+DATASET = 'mauricett/lichess_sf'
 NUM_WORKERS = 4
 
 # Training loop
