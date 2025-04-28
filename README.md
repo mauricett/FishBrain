@@ -33,4 +33,4 @@ Old dataset: <a href="https://huggingface.co/datasets/mauricett/lichess_sf">Hugg
 The data is extracted from the <a href="https://database.lichess.org/">lichess.org open database</a> and contains literally all games from 2023 for which Stockfish evaluations were available. It's easy to use with the HuggingFace dataloader, but I'm unhappy with the dependency on <a href="https://github.com/facebook/zstd">zstd</a>. Kinda sucks, will improve.
 
 # Future directions?
-Leela has produced enormous amount of data which is freely available. Would be cool to utilize this in the future, on top of the Stockfish data. <a href="https://storage.lczero.org/files/">So much data.</a> Ideally, I want to compress as much of this as I can into a *deduplicated* dataset of FEN positions.
+Leela has produced <a href="https://storage.lczero.org/files/">enormous amounts of data</a> which is freely available. Would be cool to utilize this in the future on top of the Stockfish data. Ideally, I want to extract as much of this as I can into a *deduplicated* dataset of FEN positions.
