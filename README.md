@@ -1,22 +1,23 @@
 # FishBrain
 
 <div align="center">
-    <img src="img/logo_alpha_4.png" alt="Logo" width="196" height="196">
+    <img src="img/logo_alpha_4.png" alt="Logo" width="128" height="128">
 </div>
 
 &nbsp;
 
 <div align="center">
-FishBrain is a chess engine which uses a neural network trained on Stockfish evaluations.
+Project: training NNs on Stockfish data.
 </div>
 
 &nbsp;
 &nbsp;
 # Dataset
-Big dataset release! Check out my flashy <a href="https://huggingface.co/datasets/mauricett/lichess_sf">HuggingFace dataset</a>!
+Old dataset: <a href="https://huggingface.co/datasets/mauricett/lichess_sf">HuggingFace dataset</a>.
+Shitty format, will rework. It's curated Lichess data from 2023. New dataset will be 01.2023 - 05.2025 or so, and come in a different format. 
 
-# Status
-The first iteration of FishBrain (version v0) is in training.
+# FishBrain v0
+I finished the first NN in 2024 and it worked okay. Now working on a more serious release, FishBrain v1. My old code is "research quality", a.k.a. it's not very usable, but at least it works... hey...
 
-# Feedback and discussions
-I'm happy about any feedback or discussion. Feel free to reach out.
+# Future directions?
+Leela has produced enormous amount of data which is freely available. Would be cool to utilize this in the future, on top of the Stockfish data.
