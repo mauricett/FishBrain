@@ -5,7 +5,7 @@
 </div>
 
 <div align="center">
-Project: training NNs on Stockfish data.
+Project: training small but powerful NNs on Stockfish data.
 </div>
 
 &nbsp;
@@ -30,7 +30,7 @@ I am in the process of updating and reworking the dataset. It's going to be 2.5x
 &nbsp;
 &nbsp;
 Old dataset: <a href="https://huggingface.co/datasets/mauricett/lichess_sf">HuggingFace dataset</a>.
-The data is extracted from the <a href="https://database.lichess.org/">lichess.org open database</a> and contains literally all games from 2023 for which Stockfish evaluations were available. The format is a bit shittye. (It uses on-the-fly decompression with <a href="https://github.com/facebook/zstd">Zstandard</a>.
+The data is extracted from the <a href="https://database.lichess.org/">lichess.org open database</a> and contains literally all games from 2023 for which Stockfish evaluations were available. The format is a bit shitty. (It requires on-the-fly decompression with <a href="https://github.com/facebook/zstd">Zstandard</a> making it difficult to work with...)
 
 # Future directions?
-Leela has produced enormous amount of data which is freely available. Would be cool to utilize this in the future, on top of the Stockfish data. <a href="https://storage.lczero.org/files/">So much data...</a>
+Leela has produced enormous amount of data which is freely available. Would be cool to utilize this in the future, on top of the Stockfish data. <a href="https://storage.lczero.org/files/">So much data.</a> Ideally, I want to compress as much of this as I can into a *deduplicated* dataset of FEN positions.
