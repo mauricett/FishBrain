@@ -22,7 +22,7 @@ I believe this is a viable approach to create a competitive chess engine at home
 I hope to release a write-up about FishBrain's architecture and training soon.
 
 # FishBrain v0
-I finished the first NN (see v0_legacy) in 2024 and it works okay. The NN is much smaller than <a href="https://arxiv.org/html/2402.04494v1">DeepMind's</a> and achieves a Blitz Elo of about 1800. Some of the code is "research quality", sorry. Also there is no easy way to use it. I will make sure people can easily use the next FishBrain.
+I finished the first NN (see <a href="https://github.com/mauricett/FishBrain/tree/main/old/v0_legacy/">v0_legacy</a>) in 2024 and it works okay. The NN is much smaller than <a href="https://arxiv.org/html/2402.04494v1">DeepMind's</a> and achieves a Blitz Elo of about 1800. Some of the code is "research quality" and it lacks an interface for users. Maybe just wait for the next version.
 
 # Dataset
 I am in the process of updating and reworking the dataset. It's going to be 2.5x bigger and a friendlier format.
