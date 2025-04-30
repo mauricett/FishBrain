@@ -1,7 +1,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "encoding.h"
+#include "piece_enc.h"
 
 
 uint8_t get_high_bits(uint8_t byte) {

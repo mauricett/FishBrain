@@ -1,20 +1,17 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdint.h>
-#include "board.h"
-#include "encoding.h"
+#include "board_enc.h"
+#include "piece_enc.h"
 
 
 Bitboard fen_to_bitboard(char* board_string) {
 	Bitboard bitboard = {0};
-
 	while (*board_string) {
 		char next_square = *board_string;
-
 		fill_occupancy_map(&bitboard, next_square);
 		if isalpha(*board_string) 
 			fill_piece_list(&bitboard, next_square);
-
 		board_string++;
 	}
 	return bitboard;
@@ -25,13 +22,11 @@ void print_piece_list(Bitboard* bitboard) {
 	char piece_char;
 	uint8_t piece_enc;
 	uint8_t* piece_list = bitboard->piece_list;
-
 	// two pieces per byte
 	for (int byte = 0; byte < PIECE_LIST_MAX_BYTES; byte++) {
 		piece_enc = get_high_bits(*piece_list);
 		piece_char = get_piece_char(piece_enc);
 		putchar(piece_char);
-
 		piece_enc = get_low_bits(*piece_list);
 		piece_char = get_piece_char(piece_enc);
 		putchar(piece_char);
@@ -43,17 +38,14 @@ void print_piece_list(Bitboard* bitboard) {
 void fill_piece_list(Bitboard* bitboard, char next_square) {
 	uint8_t piece_enc = get_piece_enc(next_square);
 	uint8_t piece_idx = bitboard->num_pieces;
-	
 	// two pieces per byte, get correct byte to write to
 	int byte_idx = piece_idx / 2;
 	uint8_t* target_byte = &bitboard->piece_list[byte_idx];
-	
 	// if piece index is even -> write to high nibble
 	if (piece_idx % 2 == 0)
 		set_high_nibble(target_byte, piece_enc);
 	else
 		set_low_nibble(target_byte, piece_enc);
-	
 	bitboard->num_pieces++;
 }
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "board.h"
-#include "encoding.h"
+#include "board_enc.h"
+#include "piece_enc.h"
 
 
 int main() {
