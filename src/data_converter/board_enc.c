@@ -7,10 +7,8 @@
 
 void fill_occupancy_map(Bitboard* bitboard, char next_square);
 void fill_piece_list(Bitboard* bitboard, char next_square);
-
 void add_empty_squares(uint64_t* occupancy_map, uint8_t num_empty_squares);
 void add_occupied_square(uint64_t* occupancy_map);
-
 
 Bitboard fen_to_bitboard(char* board_string) {
 	Bitboard bitboard = {0};
@@ -24,20 +22,11 @@ Bitboard fen_to_bitboard(char* board_string) {
 	return bitboard;
 }
 
-void print_piece_list(Bitboard* bitboard) {
-	char piece_char;
-	uint8_t piece_enc;
-	uint8_t* piece_list = bitboard->piece_list;
-	// loop through piece_list, get pieces at low and high nibble
-	for (int byte = 0; byte < PIECE_LIST_MAX_BYTES; byte++) {
-		piece_enc = get_high_bits(*piece_list);
-		piece_char = get_piece_char(piece_enc);
-		putchar(piece_char);
-		piece_enc = get_low_bits(*piece_list);
-		piece_char = get_piece_char(piece_enc);
-		putchar(piece_char);
-		piece_list++;
-	}
+void fill_occupancy_map(Bitboard* bitboard, char next_square) {
+	if isdigit(next_square)
+		add_empty_squares(&bitboard->occupancy_map, char_to_digit(next_square));
+	else if isalpha(next_square)
+		add_occupied_square(&bitboard->occupancy_map);
 }
 
 void fill_piece_list(Bitboard* bitboard, char next_square) {
@@ -54,13 +43,6 @@ void fill_piece_list(Bitboard* bitboard, char next_square) {
 	bitboard->num_pieces++;
 }
 
-void fill_occupancy_map(Bitboard* bitboard, char next_square) {
-	if isdigit(next_square)
-		add_empty_squares(&bitboard->occupancy_map, char_to_digit(next_square));
-	else if isalpha(next_square)
-		add_occupied_square(&bitboard->occupancy_map);
-}
-
 void add_empty_squares(uint64_t* occupancy_map, uint8_t num_empty_squares) {
 	// zero-bits represent empty squares
 	*occupancy_map = *occupancy_map << num_empty_squares;
@@ -69,4 +51,20 @@ void add_empty_squares(uint64_t* occupancy_map, uint8_t num_empty_squares) {
 void add_occupied_square(uint64_t* occupancy_map) {
 	// shift to make place for next piece, then activate low bit
 	*occupancy_map = (*occupancy_map << 1) + 1;
+}
+
+void print_piece_list(Bitboard* bitboard) {
+	char piece_char;
+	uint8_t piece_enc;
+	uint8_t* piece_list = bitboard->piece_list;
+	// loop through piece_list, get pieces at low and high nibble
+	for (int byte = 0; byte < PIECE_LIST_MAX_BYTES; byte++) {
+		piece_enc = get_high_bits(*piece_list);
+		piece_char = get_piece_char(piece_enc);
+		putchar(piece_char);
+		piece_enc = get_low_bits(*piece_list);
+		piece_char = get_piece_char(piece_enc);
+		putchar(piece_char);
+		piece_list++;
+	}
 }

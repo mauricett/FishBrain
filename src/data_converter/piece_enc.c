@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "piece_enc.h"
 
 
 enum piece_enc {
