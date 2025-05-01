@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "board_enc.h"
-#include "piece_enc.h"
+#include "data_converter/board_enc.h"
 
 
 int main() {
