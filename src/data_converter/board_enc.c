@@ -5,24 +5,30 @@
 #include "piece_enc.h"
 
 
+void fill_occupancy_map(Bitboard* bitboard, char next_square);
+void fill_piece_list(Bitboard* bitboard, char next_square);
+
+void add_empty_squares(uint64_t* occupancy_map, uint8_t num_empty_squares);
+void add_occupied_square(uint64_t* occupancy_map);
+
+
 Bitboard fen_to_bitboard(char* board_string) {
 	Bitboard bitboard = {0};
+	// loop through null-terminated string that holds the board
 	while (*board_string) {
-		char next_square = *board_string;
-		fill_occupancy_map(&bitboard, next_square);
+		fill_occupancy_map(&bitboard, *board_string);
 		if isalpha(*board_string) 
-			fill_piece_list(&bitboard, next_square);
+			fill_piece_list(&bitboard, *board_string);
 		board_string++;
 	}
 	return bitboard;
 }
 
-
 void print_piece_list(Bitboard* bitboard) {
 	char piece_char;
 	uint8_t piece_enc;
 	uint8_t* piece_list = bitboard->piece_list;
-	// two pieces per byte
+	// loop through piece_list, get pieces at low and high nibble
 	for (int byte = 0; byte < PIECE_LIST_MAX_BYTES; byte++) {
 		piece_enc = get_high_bits(*piece_list);
 		piece_char = get_piece_char(piece_enc);
@@ -30,7 +36,6 @@ void print_piece_list(Bitboard* bitboard) {
 		piece_enc = get_low_bits(*piece_list);
 		piece_char = get_piece_char(piece_enc);
 		putchar(piece_char);
-
 		piece_list++;
 	}
 }
@@ -57,9 +62,11 @@ void fill_occupancy_map(Bitboard* bitboard, char next_square) {
 }
 
 void add_empty_squares(uint64_t* occupancy_map, uint8_t num_empty_squares) {
+	// zero-bits represent empty squares
 	*occupancy_map = *occupancy_map << num_empty_squares;
 }
 
 void add_occupied_square(uint64_t* occupancy_map) {
+	// shift to make place for next piece, then activate low bit
 	*occupancy_map = (*occupancy_map << 1) + 1;
 }

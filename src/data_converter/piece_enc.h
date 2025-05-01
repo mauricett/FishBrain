@@ -1,19 +1,5 @@
 #include <stdint.h>
 
-enum piece_enc {
-	EMPTY  = 0,
-	PAWN   = 1,
-	KNIGHT = 2,
-	BISHOP = 3,
-	ROOK   = 4,
-	QUEEN  = 5,
-	KING   = 6,
-	// use the high bit of our 4bit piece representation for color
-	WHITE = 8,
-	// use highest possible 4bit value as our error code
-	ENC_ERROR = 15
-};
-
 uint8_t get_high_bits(uint8_t byte);
 uint8_t get_low_bits(uint8_t byte);
 
