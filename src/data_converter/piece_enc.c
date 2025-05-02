@@ -19,23 +19,23 @@ enum piece_enc {
 };
 
 uint8_t get_high_bits(uint8_t byte) {
-	// shift high bits into the low nibble
+	// shift high bits into the low bits
 	return byte >> 4;
 }
 
 uint8_t get_low_bits(uint8_t byte)  {
-	// return with cleared high bits
+	// set high bits to 0
 	return byte & 0x0F;
 }
 
-void set_high_nibble(uint8_t* byte, const uint8_t value) { 
-	// clear and set high nibble
+void set_high_bits(uint8_t* byte, const uint8_t value) { 
+	// clear and set high bits
 	*byte &= 0x0F;
 	*byte |= (value << 4);
 }
 
-void set_low_nibble(uint8_t* byte, const uint8_t value)  { 
-	// clear and set low nibble
+void set_low_bits(uint8_t* byte, const uint8_t value)  { 
+	// clear and set low bits
 	*byte &= 0xF0;
 	*byte |= value;
 }

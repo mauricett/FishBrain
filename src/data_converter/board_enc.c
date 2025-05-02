@@ -35,11 +35,11 @@ void fill_piece_list(Bitboard* bitboard, char next_square) {
 	// two pieces per byte, get correct byte to write to
 	int byte_idx = piece_idx / 2;
 	uint8_t* target_byte = &bitboard->piece_list[byte_idx];
-	// if piece index is even -> write to high nibble
+	// if piece index is even -> write to high bits
 	if (piece_idx % 2 == 0)
-		set_high_nibble(target_byte, piece_enc);
+		set_high_bits(target_byte, piece_enc);
 	else
-		set_low_nibble(target_byte, piece_enc);
+		set_low_bits(target_byte, piece_enc);
 	bitboard->num_pieces++;
 }
 
@@ -57,7 +57,7 @@ void print_piece_list(Bitboard* bitboard) {
 	char piece_char;
 	uint8_t piece_enc;
 	uint8_t* piece_list = bitboard->piece_list;
-	// loop through piece_list, get pieces at low and high nibble
+	// loop through piece_list, get pieces at low and high bits
 	for (int byte = 0; byte < PIECE_LIST_MAX_BYTES; byte++) {
 		piece_enc = get_high_bits(*piece_list);
 		piece_char = get_piece_char(piece_enc);
