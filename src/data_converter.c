@@ -20,18 +20,20 @@ void (*fen_processors[6])() = {
     &process_moves_total
 };
 
+char fen[] = "4rr1k/pb4q1/1bp2pQp/3p2p1/R7/4P2P/1B2BPP1/3R2K1 w - - 6 32";
+
 
 int main()
 {
-    char fen[] = "4rr1k/pb4q1/1bp2pQp/3p2p1/R7/4P2P/1B2BPP1/3R2K1 w - - 6 32";
     
     int n = 0;
     char *save, *substring;
 
-    for (substring = strtok_r(fen, " ", &save);
-         substring != NULL;
-         substring = strtok_r(NULL, " ", &save))
-    {
+    for (
+        substring = strtok_r(fen, " ", &save);
+        substring != NULL;
+        substring = strtok_r(NULL, " ", &save)
+    ) {
         fen_processors[n]();
         ++n;
     }
