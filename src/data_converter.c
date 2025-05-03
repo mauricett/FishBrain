@@ -27,21 +27,40 @@ int main() {
 	char *delim = " ";
 	char *save;
 	
-	int num_strings = 0;
+
+	// **************************************************
+	// variant 1
+	int processed_strings = 0;
 	char *substring = strtok_r(fen, delim, &save);
-	while (substring) {
-		printf("substring: %s\n", substring);
-		++num_strings;
+	while (substring)
+	{
+		fen_processors[processed_strings]();
+		++processed_strings;
 		substring = strtok_r(NULL, delim, &save);
 	}
 	
-	/*
+
+	// **************************************************
+	// variant 2
 	char *substring = strtok_r(fen, delim, &save);
-	for (int n_str = 0; n_str < 6; ++n_str) {
+	for (int n_str = 0; n_str < 6; ++n_str)
+	{
 		fen_processors[n_str]();
 		substring = strtok_r(NULL, delim, &save);
 	}
-	*/
+
+
+	// **************************************************
+	// variant 3
+	int n = 0;
+	for (char *substring = strtok_r(fen, delim, &save);
+		       substring != NULL;
+			   substring = strtok_r(NULL, delim, &save)
+	) {
+		fen_processors[n]();
+		++n;
+		substring = strtok_r(NULL, delim, &save);
+	}
 
 	return 0;
 }
