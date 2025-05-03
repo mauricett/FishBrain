@@ -22,10 +22,8 @@ void (*fen_processors[6])() = {
 
 char fen[] = "4rr1k/pb4q1/1bp2pQp/3p2p1/R7/4P2P/1B2BPP1/3R2K1 w - - 6 32";
 
-
 int main()
 {
-    
     int n = 0;
     char *save, *substring;
 
