@@ -11,9 +11,9 @@ void process_en_passant() {};
 void process_moves_since() {};
 void process_moves_total() {};
 
-int main()
-{
-	void *fen_processors[6] = {
+int main() {
+
+	void (*fen_processors[6])() = {
 		&process_position,
 		&process_turn,
 		&process_castling,
@@ -26,13 +26,22 @@ int main()
 	
 	char *delim = " ";
 	char *save;
-
+	
+	int num_strings = 0;
 	char *substring = strtok_r(fen, delim, &save);
-
 	while (substring) {
 		printf("substring: %s\n", substring);
+		++num_strings;
 		substring = strtok_r(NULL, delim, &save);
 	}
 	
+	/*
+	char *substring = strtok_r(fen, delim, &save);
+	for (int n_str = 0; n_str < 6; ++n_str) {
+		fen_processors[n_str]();
+		substring = strtok_r(NULL, delim, &save);
+	}
+	*/
+
 	return 0;
 }
