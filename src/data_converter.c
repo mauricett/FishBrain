@@ -27,7 +27,7 @@ int main() {
 	char *delim = " ";
 	char *save;
 	
-
+	/*
 	// **************************************************
 	// variant 1
 	int processed_strings = 0;
@@ -48,18 +48,17 @@ int main() {
 		fen_processors[n_str]();
 		substring = strtok_r(NULL, delim, &save);
 	}
-
+	*/
 
 	// **************************************************
 	// variant 3
 	int n = 0;
-	for (char *substring = strtok_r(fen, delim, &save);
-		       substring != NULL;
-			   substring = strtok_r(NULL, delim, &save)
-	) {
+	char *substring;
+	for (substring = strtok_r(fen, delim, &save);
+		 substring != NULL;
+		 ++n, substring = strtok_r(NULL, delim, &save))
+	{
 		fen_processors[n]();
-		++n;
-		substring = strtok_r(NULL, delim, &save);
 	}
 
 	return 0;
