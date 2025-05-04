@@ -1,2 +1,2 @@
 # FishBrain v0_legacy
-v0_legacy contains a pretrained model that's ready to be used but doesn't provide an easy interface for the user. I don't plan on changing. Instead, I will provide better functionality in v1.
+v0_legacy contains several pretrained models that are ready to be used, but it doesn't provide an easy interface for the user. The main goal was to demonstrate that I could successfully train an NN on Stockfish data.
