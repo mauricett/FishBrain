@@ -4,6 +4,9 @@ import chess.pgn
 import io
 import time
 
+MIN_CHARS_PGN = 200
+
+#%%
 path = "raw/2013-01.pgn.zst"
 dctx = zstd.ZstdDecompressor()
 
@@ -15,22 +18,38 @@ with open(path, "rb") as file:
     file_stream = io.TextIOWrapper(reader)
 
     for line in file_stream:
-        # get rid of all pgns that are too short or don't have eval
-        if (len(line) >= 200) and ("%eval" in line):
+        # check min length for PGN, then check if PGN contains SF eval
+        if (len(line) >= MIN_CHARS_PGN) and ("%eval" in line):
             n_games += 1
             pgn  = io.StringIO(line)
             game = chess.pgn.read_game(pgn)
+            
+            # game_sequence, board = process_moves(game)
 
+            board = chess.Board()
+
+            data = []
+            uci_string = ""
             while game:
-                game.move
-                game.eval()
-
-                if(game.is_end()):
-                    game.board().outcome()
-
+                move     = game.move.__str__()
+                score    = game.eval()
+                outcome  = board.outcome() if game.is_end() else None
+                is_prmtn = (move[-1] == 'q')
+                
+                # need the fen for each position
+                # eventually, pass the complete string of moves to a C func
+                uci_string += move + ','
+                
+                data.append([move, score, is_prmtn, outcome])   
                 game = game.next()
+
+            # board_sequence = libc.fens(data, uci_string)
     
 print(n_games)
 
 t2 = time.perf_counter()
 print(t2 - t1)
+
+#%%
+data[-2]
+uci_string
