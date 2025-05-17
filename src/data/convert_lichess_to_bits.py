@@ -18,7 +18,7 @@ with open(path, "rb") as file:
     file_stream = io.TextIOWrapper(reader)
 
     for line in file_stream:
-        # check min length for PGN, then check if PGN contains SF eval
+        # Only process lines which contain "%eval" and have a min length.
         if (len(line) >= MIN_CHARS_PGN) and ("%eval" in line):
             n_games += 1
             pgn  = io.StringIO(line)
@@ -27,9 +27,11 @@ with open(path, "rb") as file:
             data = []
             uci_string = ""
             while game:
-                """ We try to avoid calling game.board(), instead
-                    pass complete sequence of moves to C function.
-                    We only call game.board() once, if is_end().
+                """ We need the FENs for each position, but python-chess
+                    only gives access to that via game.board().fen(), but
+                    game.board() is slow -> avoid calls to board()!
+                    Instead we collect all moves in uci_string and pass
+                    all required data to a C function to calculate all FENs.
                 """
                 score    = game.eval()
                 move     = game.move.__str__()
