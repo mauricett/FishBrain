@@ -26,8 +26,6 @@ with open(path, "rb") as file:
             
             # game_sequence, board = process_moves(game)
 
-            board = chess.Board()
-
             data = []
             uci_string = ""
             while game:
@@ -35,10 +33,10 @@ with open(path, "rb") as file:
                     pass complete sequence of moves to C function.
                     We only call game.board() once, if is_end().
                 """
-                move     = game.move.__str__()
                 score    = game.eval()
-                is_prmtn = (move[-1] == 'q')
+                move     = game.move.__str__()
                 outcome  = game.board().outcome() if game.is_end() else None
+                is_prmtn = (move[-1] == 'q')
                 
                 # need the fen for each position
                 # eventually, pass the complete string of moves to a C func
