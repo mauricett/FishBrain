@@ -24,8 +24,6 @@ with open(path, "rb") as file:
             pgn  = io.StringIO(line)
             game = chess.pgn.read_game(pgn)
             
-            # game_sequence, board = process_moves(game)
-
             data = []
             uci_string = ""
             while game:
@@ -45,7 +43,7 @@ with open(path, "rb") as file:
                 data.append([move, score, is_prmtn, outcome])   
                 game = game.next()
 
-            # board_sequence = libc.fens(data, uci_string)
+            #game_sequence = libc.fens(data, uci_string)
     
 print(n_games)
 
