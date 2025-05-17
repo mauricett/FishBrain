@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <wchar.h>
 
 #define MAX_FEN_PROCESSORS 6
 
@@ -21,6 +22,8 @@ void (*fen_processors[MAX_FEN_PROCESSORS])() = {
     &process_full_moves
 };
 
+// PROMOTIONS ????????????
+
 struct GameBitFormat {
 	// !!!!!!!!!! should not be part of individual posis !!!!!!!!!!!
 	// ****  metadata (6 bytes) ****
@@ -30,10 +33,10 @@ struct GameBitFormat {
 	//
 	// !!!!!!!!!! individual posis !!!!!!!!!!!
 	// ****  stuff (4 bytes) ****
-	// 1 bit  is_final_move (i.e. next data will be new game)
-	// 1 bit  free bit (is_check?)
 	// 6 bits next_move from_square
 	// 6 bits next_move to_square
+	// 1 bit  is_promotion
+	// 1 bit  is_final_move (i.e. next data will be new game)
 	// 2 bits outcome condition (checkmate, stalemate, insufficient material, sf eval)
 	// 16 bits sf eval fp16
 	//
@@ -46,6 +49,7 @@ struct GameBitFormat {
 	// 4 bits castling
 	// 3 bits en passant
 };
+
 
 char fen[] = "4rr1k/pb4q1/1bp2pQp/3p2p1/R7/4P2P/1B2BPP1/3R2K1 w - - 6 32";
 
