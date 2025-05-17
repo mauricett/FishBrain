@@ -33,8 +33,10 @@ with open(path, "rb") as file:
             while game:
                 move     = game.move.__str__()
                 score    = game.eval()
-                outcome  = board.outcome() if game.is_end() else None
                 is_prmtn = (move[-1] == 'q')
+                
+                # crap, need to get board before we can do this
+                #outcome  = board.outcome() if game.is_end() else None
                 
                 # need the fen for each position
                 # eventually, pass the complete string of moves to a C func
