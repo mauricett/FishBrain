@@ -37,9 +37,9 @@ struct GameBitFormat {
 	// 6 bits next_move from_square
 	// 6 bits next_move to_square
 	// 1 bit  is_promotion
-	// 1 bit  is_final_move (i.e. next data will be new game)
+	// 1 bit  is_mating_line (did SF find a mating line?) -> changes behaviour of last 16 bits (sf_eval OR mate_in_n)
 	// 2 bits outcome condition (checkmate, stalemate, insufficient material, sf eval)
-	// 16 bits sf eval fp16
+	// 16 bits sf_eval fp16 // mate_in_n
 	//
 	// **** board position (24 bytes) ****
 	// 16 bytes piece_list
