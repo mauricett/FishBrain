@@ -26,10 +26,11 @@ void (*fen_processors[MAX_FEN_PROCESSORS])() = {
 
 struct GameBitFormat {
 	// !!!!!!!!!! should not be part of individual posis !!!!!!!!!!!
-	// ****  metadata (6 bytes) ****
+	// ****  metadata (6+? bytes) ****
 	// 2 bytes elo white
 	// 2 bytes elo black
 	// 2 bytes num_moves
+	// ? bytes header_validator_magic_number?
 	//
 	// !!!!!!!!!! individual posis !!!!!!!!!!!
 	// ****  stuff (4 bytes) ****
@@ -44,10 +45,12 @@ struct GameBitFormat {
 	// 16 bytes piece_list
 	// 8 bytes occupancy_map
 	//
-	// **** other FEN tokens (4 bytes) ****
+	// **** other FEN tokens (1 byte) ****
 	// 1 bit turn
 	// 4 bits castling
 	// 3 bits en passant
+	//
+	// *** total bytes per game: 6+? + num_moves * 29 bytes
 };
 
 
