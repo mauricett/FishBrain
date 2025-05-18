@@ -59,17 +59,21 @@ def convert_lichess_archive(archive_path, min_chars):
 
 def iter_lichess_archive(archive_path, min_chars):
     dctx = zstd.ZstdDecompressor()
+
     with open(archive_path, "rb") as f:
         reader  = io.BufferedReader(dctx.stream_reader(f))
         text_io = io.TextIOWrapper(reader)
+
         while (raw_line := text_io.readline()):
             if (len(raw_line) < min_chars) or ("%eval" not in raw_line):
                 continue
+
             try:
                 game = _parse_game(raw_line)
             except Exception as e:
                 logger.warning("Skipping game due to exception:\n%s\n", e)
                 continue
+
             yield game
 
 
@@ -82,10 +86,13 @@ def _parse_game(pgn_line):
     
     node = root_node
     while node:
-        score   = node.eval()
-        move    = node.move.__str__()
+        if score := node.eval():
+            score = score.relative.score(mate_score=100000)
+        move = node.move.__str__()
         # uci move has length 5 iff promotion, with format a7a8q
         promote = move[-1] if (len(move) == 5) else ''
+
+        """ STILL NEED TO FILTER APPROPRIATE OUTCOMES """
         outcome = node.board().outcome() if node.is_end() else None
 
         # store data and go to next position in game
@@ -115,3 +122,5 @@ if __name__ == "__main__":
     print(t2 - t1)
     print(n)
 
+#%%
+x
