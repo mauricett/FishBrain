@@ -8,7 +8,7 @@ MIN_CHARS_PGN = 200
 
 class GameSequence:
     scores     = []
-    moves      = [] #[ [from, to, is_prmtn], ... ] ???
+    moves      = [] #[ [from, to, promote], ... ] ???
     outcome    = None
     uci_string = ""
 
@@ -52,16 +52,16 @@ with open(path, "rb") as file:
                 is slow -> avoid calls to board()!
                 Instead, collect moves in uci_string and pass all data to C!
                 """
-                score    = game.eval()
-                move     = game.move.__str__()
-                outcome  = game.board().outcome() if game.is_end() else None
-                is_prmtn = (move[-1] == 'q')
+                score   = game.eval()
+                move    = game.move.__str__()
+                promote = move[-1] if (len(move) == 5) else ''
+                outcome = game.board().outcome() if game.is_end() else None
                 
                 # need the fen for each position
                 # eventually, pass the complete string of moves to a C func
                 uci_string += move + ','
                 
-                data.append([move, score, is_prmtn, outcome])   
+                data.append([score, move, promote, outcome])   
                 game = game.next()
 
             #game_sequence = libc.fens(data, uci_string)
