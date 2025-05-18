@@ -67,11 +67,11 @@ def _parse_game(pgn_line):
     
     node = root_node
     while node:
-        score   = game.eval()
-        move    = game.move.__str__()
+        score   = node.eval()
+        move    = node.move.__str__()
         # uci move has length 5 iff promotion, with format a7a8q
         promote = move[-1] if (len(move) == 5) else ''
-        outcome = game.board().outcome() if game.is_end() else None
+        outcome = node.board().outcome() if node.is_end() else None
 
         # store results
         uci_moves.append(move)
