@@ -67,7 +67,6 @@ def iter_lichess_archive(archive_path, min_chars):
         while (raw_line := text_io.readline()):
             if (len(raw_line) < min_chars) or ("%eval" not in raw_line):
                 continue
-
             try:
                 game = _parse_game(raw_line)
             except Exception as e:
