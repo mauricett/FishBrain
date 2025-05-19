@@ -23,7 +23,7 @@ torch.set_float32_matmul_precision('high')
 BATCHSIZE = 2048
 N_CHECKPOINT = 10
 D_EMB = 128
-N_LAYERS = 4
+N_LAYERS = 16
 N_HEADS = 4
 device = 'cuda'
 
@@ -40,7 +40,8 @@ dataset = dataset.map(function=process_sample,
 
 dataloader = DataLoader(dataset, 
                         batch_size=BATCHSIZE,
-                        num_workers=8)
+                        prefetch_factor=8,
+                        num_workers=16)
 
 #%%
 #model = Net(D_EMB, N_LAYERS, N_HEADS)
