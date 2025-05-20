@@ -4,92 +4,116 @@ import chess.pgn
 import io
 import time
 import logging
+from typing import List
+from dataclasses import dataclass, field
 from ctypes import *
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-PATH = "raw/2013-01.pgn.zst"
-MIN_CHARS_PGN = 200
+ARCHIVE_PATH = "raw/2013-01.pgn.zst"
+MIN_CHARS_PGN = 100
 
 
 
 class GameStruct(Structure):
     _field_ = [
         ("n_moves", c_uint16),
-        ("moves", POINTER(c_char)),
-        ("scores", POINTER(c_int32))
+        ("moves",   POINTER(c_char)),
+        ("scores",  POINTER(c_int32))
     ]
+        
 
-
-
-def iter_lichess_archive(archive_path, min_chars):
-    dctx = zstd.ZstdDecompressor()
-
-    with open(archive_path, "rb") as f:
-        reader  = io.BufferedReader(dctx.stream_reader(f))
-        text_io = io.TextIOWrapper(reader)
-
-        while (raw_line := text_io.readline()):
-            if (len(raw_line) < min_chars) or ("%eval" not in raw_line):
-                continue
-            try:
-                # maybe call chess.pgn.read_game() here?
-                game = _parse_game(raw_line)
-            except Exception as e:
-                logger.warning("Skipping game due to exception:\n%s\n", e)
-                continue
-
-            yield game
-
-
-
-def _parse_game(pgn_line):
-    game_string = io.StringIO(pgn_line)
-    root_node = chess.pgn.read_game(game_string)
-
-    moves, scores = [], []
-    n_moves = 0
-
-    # skip first node, holds no data!
-    node = root_node.next()
-    while node:
+@dataclass
+class GameData:
+    moves:   List[str] = field(default_factory=list)
+    scores:  List[int] = field(default_factory=list)
+    outcome: str = ""
+    n_moves: int = 0
+    
+    def get_score(self, node):
+        """ STILL NEED TO DEAL WITH NONE AND MATES """
         if score := node.eval():
             score = score.relative.score(mate_score=100000)
         else:
-            # TODO: deal with None scores and mates
             score = 0
+        self.scores.append(score)
+
+
+    def get_move(self, node):
+        """ STILL NEED TO DEAL WITH NONE """
         move = node.move.__str__()
-        # uci move has length 5 iff promotion, with format a7a8q
-        promote = move[-1] if (len(move) == 5) else ''
+        self.moves.append(move)
+        
+    def get_outcome(self, node):
         """ STILL NEED TO FILTER APPROPRIATE OUTCOMES """
         outcome = node.board().outcome() if node.is_end() else None
+        self.outcome = outcome
 
-        # store data and go to next position in game
-        n_moves += 1
-        moves.append(move)
-        scores.append(score)
-        node = node.next()
+
+    def to_gamestruct(self):
+        moves_str = ",".join(self.moves)
+        moves_str = moves_str.encode('UTF-8')
+        return GameStruct(
+            n_moves = self.n_moves,
+            moves   = create_string_buffer(moves_str),
+            scores  = (self.n_moves * c_int32)(*self.scores)
+        )
+
+
+
+def filter_passed(line, min_length):
+    if len(line) < min_length:
+        return False
+    if "%eval" not in line:
+        return False
+    return True
+
+
+def get_filtered_lines(archive_path, min_chars_pgn):
+    dctx = zstd.ZstdDecompressor()
+
+    with open(archive_path, "rb") as f, dctx.stream_reader(f) as reader:
+        text_io = io.TextIOWrapper(reader)
+
+        while (line := text_io.readline()):
+            if filter_passed(line, min_chars_pgn):
+                yield line
+
+
+def extract_game_data(line):
+    game_string = io.StringIO(line)
+    node = chess.pgn.read_game(game_string)
     
-    moves = ",".join(moves)
-    return n_moves, moves, scores
+    game_data = GameData()
+
+    # skip first node, holds no data!
+    while node := node.next():
+        # transform and store as GameData
+        game_data.get_move(node)
+        game_data.get_score(node)
+        game_data.n_moves += 1
+
+    return game_data
+ 
 
 
 
 #%%
 if __name__ == "__main__":
-    # benchmark iter_lichess_archive()
+
     t1 = time.perf_counter()
 
     n = 0
-    for n_moves, moves, scores in iter_lichess_archive(PATH, MIN_CHARS_PGN):
-        game = GameStruct(
-            n_moves = n_moves,
-            moves = create_string_buffer(moves.encode('UTF-8')),
-            scores = (n_moves * c_int32)(*scores)
-        )
+    for line in get_filtered_lines(ARCHIVE_PATH, MIN_CHARS_PGN):
+        game_data   = extract_game_data(line)
+        game_struct = game_data.to_gamestruct()
         n += 1
 
     t2 = time.perf_counter()
+
     print(t2 - t1)
     print(n)
+
+#%%
