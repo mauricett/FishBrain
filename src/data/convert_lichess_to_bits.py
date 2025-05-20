@@ -13,17 +13,18 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 ARCHIVE_PATH = "raw/2013-01.pgn.zst"
-MIN_CHARS_PGN = 100
+MIN_CHARS_PGN = 120
 
 
 
 class GameStruct(Structure):
-    _field_ = [
+    _fields_ = [
         ("n_moves", c_uint16),
         ("moves",   POINTER(c_char)),
         ("scores",  POINTER(c_int32))
     ]
         
+
 
 @dataclass
 class GameData:
@@ -31,8 +32,9 @@ class GameData:
     scores:  List[int] = field(default_factory=list)
     outcome: str = ""
     n_moves: int = 0
-    
-    def get_score(self, node):
+
+
+    def store_score(self, node: chess.pgn.ChildNode):
         """ STILL NEED TO DEAL WITH NONE AND MATES """
         if score := node.eval():
             score = score.relative.score(mate_score=100000)
@@ -41,15 +43,19 @@ class GameData:
         self.scores.append(score)
 
 
-    def get_move(self, node):
+    def store_move(self, node: chess.pgn.ChildNode):
         """ STILL NEED TO DEAL WITH NONE """
         move = node.move.__str__()
         self.moves.append(move)
         
-    def get_outcome(self, node):
+
+    def store_outcome(self, node: chess.pgn.ChildNode):
         """ STILL NEED TO FILTER APPROPRIATE OUTCOMES """
-        outcome = node.board().outcome() if node.is_end() else None
-        self.outcome = outcome
+        #outcome = node.board().outcome() if node.is_end() else None
+        #self.outcome = outcome
+        if node.is_end():
+            self.outcome = node.board().outcome()
+            print(self.outcome)
 
 
     def to_gamestruct(self):
@@ -63,41 +69,39 @@ class GameData:
 
 
 
-def filter_passed(line, min_length):
-    if len(line) < min_length:
+def filters_passed(line, min_chars_pgn):
+    if len(line) < min_chars_pgn:
         return False
     if "%eval" not in line:
         return False
     return True
 
 
-def get_filtered_lines(archive_path, min_chars_pgn):
+def open_zst(archive_path):
     dctx = zstd.ZstdDecompressor()
-
-    with open(archive_path, "rb") as f, dctx.stream_reader(f) as reader:
-        text_io = io.TextIOWrapper(reader)
-
-        while (line := text_io.readline()):
-            if filter_passed(line, min_chars_pgn):
-                yield line
+    binary = open(archive_path, "rb")
+    return io.TextIOWrapper(dctx.stream_reader(binary))
 
 
-def extract_game_data(line):
-    game_string = io.StringIO(line)
-    node = chess.pgn.read_game(game_string)
+def stream_filtered_lines(io_stream, min_chars_pgn):
+    while (line := io_stream.readline()):
+        if filters_passed(line, min_chars_pgn):
+            yield line
+
+
+def extract_game_data(pgn_string: str):
+    node = chess.pgn.read_game(io.StringIO(pgn_string))
     
     game_data = GameData()
-
     # skip first node, holds no data!
     while node := node.next():
         # transform and store as GameData
-        game_data.get_move(node)
-        game_data.get_score(node)
+        game_data.store_move(node)
+        game_data.store_score(node)
+        game_data.store_outcome(node)
         game_data.n_moves += 1
 
     return game_data
- 
-
 
 
 #%%
@@ -106,10 +110,11 @@ if __name__ == "__main__":
     t1 = time.perf_counter()
 
     n = 0
-    for line in get_filtered_lines(ARCHIVE_PATH, MIN_CHARS_PGN):
-        game_data   = extract_game_data(line)
-        game_struct = game_data.to_gamestruct()
-        n += 1
+    with open_zst(ARCHIVE_PATH) as stream:
+        for pgn_string in stream_filtered_lines(stream, MIN_CHARS_PGN):
+            game_data   = extract_game_data(pgn_string)
+            game_struct = game_data.to_gamestruct()
+            n += 1
 
     t2 = time.perf_counter()
 
@@ -117,3 +122,4 @@ if __name__ == "__main__":
     print(n)
 
 #%%
+game_data
