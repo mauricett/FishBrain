@@ -41,6 +41,7 @@ class GameData:
         if score := node.eval():
             score = score.pov(color=chess.WHITE)
         else:
+            # missing eval only allowed if is_end
             if node.is_end():
                 score = 'X'
             else:
@@ -58,12 +59,12 @@ class GameData:
             if outcome.termination in LEGAL_OUTCOMES:
                 self.outcome = outcome.termination.value
             else:
-                raise Exception("skipping termination: ", outcome.termination)
+                raise Exception("skipping termination: ", outcome.termination.value)
         else:
             if node.end().eval():
                 self.outcome = 0
             else:
-                raise Exception("missing both outcome condition and sf eval")
+                raise Exception("missing both termination and sf eval")
 
     def to_gamestruct(self):
         if not self.has_end:
