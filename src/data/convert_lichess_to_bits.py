@@ -6,14 +6,21 @@ import time
 import logging
 from typing import List
 from dataclasses import dataclass, field
-from ctypes import *
-
+from ctypes import Structure, create_string_buffer
+from ctypes import POINTER, c_uint16, c_char, c_int32
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 ARCHIVE_PATH = "raw/2013-01.pgn.zst"
 MIN_CHARS_PGN = 120
+
+# values from chess.Termination class:
+# checkmate  == 1
+# stalemate  == 2
+# insuff mat == 3
+# we skip games with outcomes > 3.
+LEGAL_OUTCOMES = [0, 1, 2, 3] 
 
 
 
@@ -23,16 +30,15 @@ class GameStruct(Structure):
         ("moves",   POINTER(c_char)),
         ("scores",  POINTER(c_int32))
     ]
-        
 
 
 @dataclass
 class GameData:
     moves:   List[str] = field(default_factory=list)
     scores:  List[int] = field(default_factory=list)
-    outcome: str = ""
-    n_moves: int = 0
-
+    has_end: bool = False
+    outcome: int  = 0
+    n_moves: int  = 0
 
     def store_score(self, node: chess.pgn.ChildNode):
         """ STILL NEED TO DEAL WITH NONE AND MATES """
@@ -42,21 +48,22 @@ class GameData:
             score = 0
         self.scores.append(score)
 
-
     def store_move(self, node: chess.pgn.ChildNode):
-        """ STILL NEED TO DEAL WITH NONE """
-        move = node.move.__str__()
-        self.moves.append(move)
+        if node.move:
+            self.moves.append(node.move.__str__())
+        else:
+            raise Exception("move could not be read")
         
-
     def store_outcome(self, node: chess.pgn.ChildNode):
-        """ STILL NEED TO FILTER APPROPRIATE OUTCOMES """
-        #outcome = node.board().outcome() if node.is_end() else None
-        #self.outcome = outcome
-        if node.is_end():
-            self.outcome = node.board().outcome()
-            print(self.outcome)
-
+        """ read the terminal condition from final game node.
+        raise exception if the node misses both SF eval and outcome.
+        """
+        if outcome := node.end().board().outcome():
+            self.outcome = outcome.termination.value
+        else:
+            if not node.end().eval():
+                raise Exception("missing both outcome condition and sf eval")
+            self.outcome = 0
 
     def to_gamestruct(self):
         moves_str = ",".join(self.moves)
@@ -68,7 +75,6 @@ class GameData:
         )
 
 
-
 def filters_passed(line, min_chars_pgn):
     if len(line) < min_chars_pgn:
         return False
@@ -78,30 +84,42 @@ def filters_passed(line, min_chars_pgn):
 
 
 def open_zst(archive_path):
-    dctx = zstd.ZstdDecompressor()
     binary = open(archive_path, "rb")
+    dctx = zstd.ZstdDecompressor()
     return io.TextIOWrapper(dctx.stream_reader(binary))
 
 
-def stream_filtered_lines(io_stream, min_chars_pgn):
+def stream_filtered_lines(io_stream):
     while (line := io_stream.readline()):
-        if filters_passed(line, min_chars_pgn):
+        if filters_passed(line, MIN_CHARS_PGN):
             yield line
 
 
 def extract_game_data(pgn_string: str):
     node = chess.pgn.read_game(io.StringIO(pgn_string))
     
-    game_data = GameData()
+    data = GameData()
     # skip first node, holds no data!
     while node := node.next():
         # transform and store as GameData
-        game_data.store_move(node)
-        game_data.store_score(node)
-        game_data.store_outcome(node)
-        game_data.n_moves += 1
+        data.store_move(node)
+        data.store_score(node)
+        data.n_moves += 1
 
-    return game_data
+        if node.is_end():
+            data.store_outcome(node)
+            data.has_end = True
+
+            if data.outcome not in LEGAL_OUTCOMES:
+                raise Exception("illegal termination condition")
+    
+    if not data.has_end:
+        raise Exception("missing end node in extract_game_data()")
+    
+    if not (data.n_moves == len(data.moves) == len(data.scores)):
+        raise Exception("mismatch in count and array sizes")
+
+    return data
 
 
 #%%
@@ -111,15 +129,17 @@ if __name__ == "__main__":
 
     n = 0
     with open_zst(ARCHIVE_PATH) as stream:
-        for pgn_string in stream_filtered_lines(stream, MIN_CHARS_PGN):
-            game_data   = extract_game_data(pgn_string)
-            game_struct = game_data.to_gamestruct()
-            n += 1
-
+        for pgn_string in stream_filtered_lines(stream):
+            try:
+                py_data:  GameData   = extract_game_data(pgn_string)
+                c_struct: GameStruct = py_data.to_gamestruct()
+                n += 1
+            except Exception as e:
+                logger.warning("\nskip current line, because:\n%s\n", e)
+                continue
+    
     t2 = time.perf_counter()
 
     print(t2 - t1)
     print(n)
-
 #%%
-game_data
