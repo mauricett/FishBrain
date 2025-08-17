@@ -6,12 +6,14 @@ from zstandard import ZstdDecompressor
 import chess.pgn
 
 
+
 # skip games with terminal conditions different from:
 LEGAL_OUTCOMES = [
     chess.Termination.CHECKMATE,
     chess.Termination.STALEMATE,
     chess.Termination.INSUFFICIENT_MATERIAL
 ]
+
 
 
 @dataclass
@@ -21,6 +23,7 @@ class GameData:
     has_end: bool = False
     outcome: int  = 0
     n_moves: int  = 0
+
 
 
 class ZstReader:
@@ -48,9 +51,9 @@ class ZstReader:
     
 
     def parse_pgn(self, pgn_string):
-        node = chess.pgn.read_game(io.StringIO(pgn_string))
-        
         data = GameData()
+
+        node = chess.pgn.read_game(io.StringIO(pgn_string))
         # skip first node, contains only the starting position
         while node := node.next():
             # transform and store as GameData
@@ -62,7 +65,7 @@ class ZstReader:
                 data.has_end = True
 
         if not data.has_end:
-            raise Exception("missing end node in extract_game_data()")
+            raise Exception("missing end node in parge_pgn()")
         
         if not (data.n_moves == len(data.moves) == len(data.scores)):
             raise Exception("mismatch in count and array sizes")
