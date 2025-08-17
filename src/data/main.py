@@ -1,18 +1,22 @@
 #%%
 import time
 from ctypes import *
-from data_models import ZstReader
+from zst_reader import ZstReader
+from buffer_processor import BufferProcessor
 
-
-libc = CDLL("./lib.o")
 
 MIN_LENGTH_PGN = 120
 ZST_ARCHIVE_PATH  = "raw/2013-01.pgn.zst"
+
+
+libc = CDLL("./lib.o")
 
 zst_reader = ZstReader(
     min_length_pgn   = MIN_LENGTH_PGN,
     zst_archive_path = ZST_ARCHIVE_PATH
 )
+
+buffer = BufferProcessor()
 
 if __name__ == "__main__":
     print(f"\nparsing archive at {ZST_ARCHIVE_PATH}\n")
@@ -20,15 +24,21 @@ if __name__ == "__main__":
 
     t1 = time.perf_counter()
 
+
     for game in zst_reader.iter_pgns():
         try:
-            data = zst_reader.parse_pgn(game)
-            #buffer.add_game(data)
-            #num['parsed'] += 1
+            data = zst_reader.parse_pgn(game) # increments 'total_read' at beginning of parse_pgn(), increment 'parsed' at end.
+
+            buffer.add_game(data) # stores 'buffered', 'total_saved'
+            if buffer.is_full:
+                buffer.process()
+
         except Exception as e:
-            #num['skipped'] += 1
-            #print(f"{num['skipped']}: {e}")
             continue
+
+    if not buffer.is_empty:
+        buffer.process_final()
+
 
     t2 = time.perf_counter()
 
