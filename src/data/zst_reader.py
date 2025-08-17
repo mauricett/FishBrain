@@ -19,7 +19,7 @@ LEGAL_OUTCOMES = [
 @dataclass
 class GameData:
     moves:   List[str] = field(default_factory=list)
-    scores:  List[str] = field(default_factory=list)
+    evals:  List[str] = field(default_factory=list)
     has_end: bool = False
     outcome: int  = 0
     n_moves: int  = 0
@@ -30,7 +30,9 @@ class ZstReader:
     def __init__(self, min_length_pgn, zst_archive_path):
         self.min_length_pgn = min_length_pgn
         self.zst_archive_path = zst_archive_path
- 
+        self.n_parsed_games = 0
+        self.n_total_games = 0
+
 
     def pass_filters(self, line):
         if len(line) < self.min_length_pgn:
@@ -51,10 +53,11 @@ class ZstReader:
     
 
     def parse_pgn(self, pgn_string):
-        data = GameData()
-
+        self.n_total_games += 1
+        
         node = chess.pgn.read_game(io.StringIO(pgn_string))
-        # skip first node, contains only the starting position
+        data = GameData()
+        # this skips first node, which only contains the starting position
         while node := node.next():
             # transform and store as GameData
             self._store_move(node, data)
@@ -67,9 +70,10 @@ class ZstReader:
         if not data.has_end:
             raise Exception("missing end node in parge_pgn()")
         
-        if not (data.n_moves == len(data.moves) == len(data.scores)):
+        if not (data.n_moves == len(data.moves) == len(data.evals)):
             raise Exception("mismatch in count and array sizes")
 
+        self.n_parsed_games += 1
         return data
     
 
@@ -82,7 +86,7 @@ class ZstReader:
                 score = 'X'
             else:
                 raise Exception("missing sf eval")
-        data.scores.append(str(score))
+        data.evals.append(str(score))
 
 
     def _store_move(self, node: chess.pgn.ChildNode, data: GameData):
