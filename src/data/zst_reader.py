@@ -1,18 +1,10 @@
+#%%
 import io
 from typing import List
 from dataclasses import dataclass, field
 
 from zstandard import ZstdDecompressor
 import chess.pgn
-
-
-
-# skip games with terminal conditions different from:
-LEGAL_OUTCOMES = [
-    chess.Termination.CHECKMATE,
-    chess.Termination.STALEMATE,
-    chess.Termination.INSUFFICIENT_MATERIAL
-]
 
 
 
@@ -27,12 +19,18 @@ class GameData:
 
 
 class ZstReader:
-    def __init__(self, min_length_pgn, zst_archive_path):
+    def __init__(self, min_length_pgn, zst_archive_path, buffer):
         self.min_length_pgn = min_length_pgn
         self.zst_archive_path = zst_archive_path
+        self.buffer = buffer
         self.n_parsed_games = 0
         self.n_total_games = 0
 
+        self.legal_outcomes = {
+            chess.Termination.CHECKMATE: 32000,
+            chess.Termination.STALEMATE: 31000,
+            chess.Termination.INSUFFICIENT_MATERIAL: 31001
+        }
 
     def pass_filters(self, line):
         if len(line) < self.min_length_pgn:
@@ -61,9 +59,10 @@ class ZstReader:
         while node := node.next():
             # transform and store as GameData
             self._store_move(node, data)
-            self._store_score(node, data)
 
-            if node.is_end():
+            if not node.is_end():
+                self._store_score(node, data)
+            else:
                 self._store_outcome(node, data)
                 data.has_end = True
 
@@ -80,13 +79,23 @@ class ZstReader:
     def _store_score(self, node: chess.pgn.ChildNode, data: GameData):
         if score := node.eval():
             score = score.pov(color=chess.WHITE)
+            score = score.score(mate_score=32000)
+            data.evals.append(str(score))
         else:
-            # missing eval only allowed if is_end
-            if node.is_end():
-                score = 'X'
+            raise Exception("missing sf eval")
+    
+
+    def _store_outcome(self, node: chess.pgn.ChildNode, data: GameData):
+        outcome = node.board().outcome()
+        if outcome:
+            if outcome.termination in self.legal_outcomes.keys():
+                data.evals.append(str(self._encode(outcome)))
             else:
-                raise Exception("missing sf eval")
-        data.evals.append(str(score))
+                raise Exception(f"skipping termination: {outcome}")
+        elif node.eval():
+            self._store_score(node, data)
+        else:
+            raise Exception(f"missing both termination and sf eval")
 
 
     def _store_move(self, node: chess.pgn.ChildNode, data: GameData):
@@ -97,18 +106,8 @@ class ZstReader:
             raise Exception("move could not be read", node.move)
 
 
-    def _store_outcome(self, node: chess.pgn.ChildNode, data: GameData):
-        outcome = node.end().board().outcome()
-        if outcome:
-            if outcome.termination in LEGAL_OUTCOMES:
-                data.outcome = outcome.termination.value
-            else:
-                raise Exception("skipping termination: ", outcome.termination.value)
-        else:
-            if node.end().eval():
-                data.outcome = 0
-            else:
-                raise Exception("missing both termination and sf eval")
-
-
-
+    def _encode(self, outcome):
+        if outcome.termination == chess.Termination.CHECKMATE:
+            if not outcome.winner:
+                return -self.legal_outcomes[outcome.termination]
+        return self.legal_outcomes[outcome.termination]
